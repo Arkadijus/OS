@@ -1,0 +1,4 @@
+.vs/**
+Debug/**
+OS/Debug/**
+OS.vcxproj.user
