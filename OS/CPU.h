@@ -1,5 +1,5 @@
 #pragma once
-#include <climits>;
+#include <climits>
 class CPU
 {
 	bool OF = false;

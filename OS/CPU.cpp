@@ -1,10 +1,11 @@
 #include "CPU.h"
+#include <climits>
 
 // Aritmetines
 //------------------------------------------------
 void CPU::ADD()
 {
-	if (AX > INT_MAX - BX)
+	if (AX > UINT_MAX - BX)
 		OF = true;
 	AX += BX;
 }
@@ -18,7 +19,7 @@ void CPU::SUB()
 
 void CPU::MUL()
 {
-	if (AX > INT_MAX / BX)
+	if (AX > UINT_MAX / BX)
 		OF = true;
 	AX *= BX;
 }
