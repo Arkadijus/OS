@@ -1,11 +1,12 @@
 #pragma once
 #include "CPU.h"
+#include "Memory.h"
 #include <vector>
 
 class VM
 {
 	CPU processor;
-	std::vector<int> memory; // need someting like block class
+	Memory memory;
 public:
 
 	VM();
