@@ -3,3 +3,4 @@ Debug/**
 OS/Debug/**
 OS.vcxproj.user
 x64/**
+OS/x64/**
