@@ -141,7 +141,7 @@
   <ItemGroup>
     <ClCompile Include="CPU.cpp" />
     <ClCompile Include="Memory.cpp" />
-    <ClCompile Include="OS.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="VM.cpp" />
   </ItemGroup>
   <ItemGroup>
