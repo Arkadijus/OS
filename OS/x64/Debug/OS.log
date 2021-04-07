@@ -1,0 +1,4 @@
+﻿  Memory.cpp
+C:\Users\Dalius\Desktop\OS\OS\Memory.cpp(11): warning C4715: 'Memory::GetWord': not all control paths return a value
+C:\Users\Dalius\Desktop\OS\OS\Memory.cpp(17): warning C4715: 'Memory::GetWordString': not all control paths return a value
+  OS.vcxproj -> C:\Users\Dalius\Desktop\OS\x64\Debug\OS.exe
