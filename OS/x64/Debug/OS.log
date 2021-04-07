@@ -1,5 +1,2 @@
-﻿  Memory.cpp
-C:\Users\Dalius\Desktop\OS\OS\Memory.cpp(13): warning C4715: 'Memory::GetWord': not all control paths return a value
-C:\Users\Dalius\Desktop\OS\OS\Memory.cpp(25): error C4716: 'Memory::WriteUINT32': must return a value
-C:\Users\Dalius\Desktop\OS\OS\Memory.cpp(19): warning C4715: 'Memory::GetWordString': not all control paths return a value
-C:\Users\Dalius\Desktop\OS\OS\Memory.cpp(41): error C4716: 'Memory::WriteString': must return a value
+﻿  main.cpp
+  OS.vcxproj -> C:\Users\Dalius\Desktop\OS\x64\Debug\OS.exe

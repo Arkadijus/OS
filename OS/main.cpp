@@ -2,7 +2,7 @@
 //
 
 #include <iostream>
-
+#include "VM.h"
 int main()
 {
     std::cout << "Enter the name of the program you would like to run\n";

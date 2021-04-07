@@ -17,7 +17,7 @@ std::string Memory::GetWordString(int blockNumber, int wordNumber)
 		return std::to_string(blocks[blockNumber].words[wordNumber]);
 	//else error
 }
-int Memory::WriteUINT32(int blockNumber, int wordNumber, uint32_t word)
+int Memory::WriteWord(int blockNumber, int wordNumber, uint32_t word)
 {
 	if (blockNumber < BLOCKCOUNT && wordNumber < WORDCOUNT)
 		blocks[blockNumber].words[wordNumber] = word;
@@ -51,4 +51,44 @@ void Memory::PrintMemory()
 		}
 		std::cout << std::endl;
 	}
+}
+
+void Memory::PrintWord(int blockNumber, int wordNumber)
+{
+	std::cout << blocks[blockNumber].words[wordNumber] << std::endl;
+}
+
+void Memory::PrintUntilEnd(int blockNumber, int wordNumber)
+{
+	if (blockNumber < BLOCKCOUNT && wordNumber < WORDCOUNT)
+	{
+		int i = blockNumber;
+		int j = wordNumber;
+		unsigned char bytes[4];
+		while (i < BLOCKCOUNT)
+		{
+			while (j < WORDCOUNT)
+			{
+				bytes[0] = (unsigned char)blocks[i].words[j];
+				bytes[1] = (unsigned char)(blocks[i].words[j] >> 8);
+				bytes[2] = (unsigned char)(blocks[i].words[j] >> 16);
+				bytes[3] = (unsigned char)(blocks[i].words[j] >> 24);
+
+				for (int index = 0; index < 4; index++)
+				{
+					if (bytes[index] != '$')
+						std::cout << bytes[index];
+					else
+					{
+						std::cout << std::endl;
+						return;
+					}
+				}
+				j++;
+			}
+			i++;
+			j = 0;
+		}
+	}
+
 }

@@ -1,9 +1,10 @@
 #pragma once
-
 #include <cstdint>
-
+#include "Memory.h"
 class CPU
 {
+public:
+
 	// status flags
 
 	struct StatusFlags
@@ -39,11 +40,6 @@ class CPU
 	std::uint16_t IC = 0;
 
 public:
-	void ADD();
-	void SUB();
-	void MUL();
-	void DIV();
 
-	void CMP();
 };
 
