@@ -22,6 +22,7 @@ int Memory::WriteUINT32(int blockNumber, int wordNumber, uint32_t word)
 	if (blockNumber < BLOCKCOUNT && wordNumber < WORDCOUNT)
 		blocks[blockNumber].words[wordNumber] = word;
 	// else error
+	return 0;
 }
 int Memory::WriteString(int blockNumber, int wordNumber, std::string str)
 {
@@ -37,7 +38,7 @@ int Memory::WriteString(int blockNumber, int wordNumber, std::string str)
 			buffer[i] = str[index];
 		}
 	}
-
+	return 0;
 }
 
 void Memory::PrintMemory()
