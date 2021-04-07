@@ -6,21 +6,21 @@
 void CPU::ADD()
 {
 	if (AX > UINT_MAX - BX)
-		OF = true;
+		SF |= StatusFlags::OF;
 	AX += BX;
 }
 
 void CPU::SUB()
 {
 	if (AX > BX)
-		OF = true;
+		SF |= StatusFlags::OF;
 	AX -= BX;
 }
 
 void CPU::MUL()
 {
 	if (AX > UINT_MAX / BX)
-		OF = true;
+		SF |= StatusFlags::OF;
 	AX *= BX;
 }
 
@@ -37,18 +37,18 @@ void CPU::CMP()
 	tAX -= tBX;
 	if (tAX == tBX)
 	{
-		ZF = 1;
-		CF = 0;
+		SF |= StatusFlags::ZF;
+		SF &= ~StatusFlags::CF;
 	}
 	else if (tAX < tBX)
 	{
-		ZF = 0;
-		CF = 1;
+		SF |= StatusFlags::CF;
+		SF &= ~StatusFlags::ZF;
 	}
 	else // tAX > tBX
 	{
-		ZF = 0;
-		CF = 0;
+		SF &= ~StatusFlags::CF;
+		SF &= ~StatusFlags::ZF;
 	}
 
 }
