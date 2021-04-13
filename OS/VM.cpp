@@ -2,6 +2,7 @@
 #include <iostream>
 #define VMBLOCKS 16
 #define VMWORDS 16
+
 VM::VM()
 {
 	
@@ -60,12 +61,12 @@ void VM::CMP()
 }
 
 //	Duomenu
-void VM::ReadToAX(int block, int word)
+void VM::ReadToAX(std::uint32_t block, std::uint32_t word)
 {
 	processor.AX = memory.GetWord(block, word);
 }
 
-void VM::WriteFromAX(int block, int word)
+void VM::WriteFromAX(std::uint32_t block, std::uint32_t word)
 {
 	memory.WriteWord(block, word, processor.AX);
 }
@@ -75,17 +76,17 @@ void VM::PrintAX()
 	std::cout << processor.AX << std::endl;
 }
 
-void VM::PrintWord(int block, int word)
+void VM::PrintWord(std::uint32_t block, std::uint32_t word)
 {
 	memory.PrintWord(block, word);
 }
 
-int VM::WriteString(int block, int word, std::string str)
+int VM::WriteString(std::uint32_t block, std::uint32_t word, std::string str)
 {
 	return memory.WriteString(block, word, str);
 }
 
-void VM::PrintUntilEnd(int block, int word)
+void VM::PrintUntilEnd(std::uint32_t block, std::uint32_t word)
 {
 	memory.PrintUntilEnd(block, word);
 }
@@ -95,7 +96,7 @@ void VM::InputAX()
 	std::cin >> processor.AX;
 }
 
-int VM::InputWord(int block, int word)
+int VM::InputWord(std::uint32_t block, std::uint32_t word)
 {
 	uint32_t input;
 	std::cin >> input;
@@ -113,3 +114,17 @@ void VM::PrintMemory()
 {
 	memory.PrintMemory();
 }
+
+const std::unordered_map<std::string, VM::voidFunc> VM::voidFunctions =
+{
+	{"RDAX", &CMP},
+	{"SWAP", &Swap},
+	{"PRAX", &CMP},
+	{"HALT", &CMP},
+};
+
+const std::unordered_map<std::string, VM::voidFuncWithAddress> VM::voidFunctionsWithAddress =
+{
+	{"SD", &PrintUntilEnd},
+	{"PA", &PrintUntilEnd},
+};
