@@ -17,14 +17,13 @@ std::string Memory::GetWordString(int blockNumber, int wordNumber)
 		return std::to_string(blocks[blockNumber].words[wordNumber]);
 	//else error
 }
-int Memory::WriteWord(int blockNumber, int wordNumber, uint32_t word)
+void Memory::WriteWord(int blockNumber, int wordNumber, uint32_t word)
 {
 	if (blockNumber < BLOCKCOUNT && wordNumber < WORDCOUNT)
 		blocks[blockNumber].words[wordNumber] = word;
 	// else error
-	return 0;
 }
-int Memory::WriteString(int blockNumber, int wordNumber, std::string str)
+void Memory::WriteString(int blockNumber, int wordNumber, std::string str)
 {
 	// handle out of bounds and other stuff
 	int index = 0;
@@ -38,7 +37,6 @@ int Memory::WriteString(int blockNumber, int wordNumber, std::string str)
 			buffer[i] = str[index];
 		}
 	}
-	return 0;
 }
 
 void Memory::PrintMemory()

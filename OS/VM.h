@@ -8,6 +8,7 @@ class VM
 {
 	CPU processor;
 	Memory memory;
+	std::string inputBuffer;
 public:
 
 	VM();
@@ -23,11 +24,12 @@ public:
 	void WriteFromAX(std::uint32_t block, std::uint32_t word);
 	void PrintAX();
 	void PrintWord(std::uint32_t block, std::uint32_t word);
-	int WriteString(std::uint32_t block, std::uint32_t word, std::string str);
+	void WriteString(std::uint32_t block, std::uint32_t word);
 	void PrintUntilEnd(std::uint32_t block, std::uint32_t word);
 	void InputAX();
-	int InputWord(std::uint32_t block, std::uint32_t word);
+	void InputWord(std::uint32_t block, std::uint32_t word);
 	void Swap();
+	void Halt();
 
 	void PrintMemory();
 

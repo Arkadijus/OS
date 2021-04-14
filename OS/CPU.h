@@ -23,6 +23,7 @@ public:
 	std::uint8_t MODE = 0;
 
 	// interupts
+
 	std::uint8_t SI = 0;
 	std::uint8_t PI = 0;
 	std::uint8_t TI = 100;

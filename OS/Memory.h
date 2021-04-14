@@ -18,8 +18,8 @@ public:
 	Memory();
 	std::uint32_t GetWord(int blockNumber, int wordNumber);
 	std::string GetWordString(int blockNumber, int wordNumber);
-	int WriteWord(int blockNumber, int wordNumber, uint32_t word);
-	int WriteString(int blockNumber, int wordNumber, std::string str);
+	void WriteWord(int blockNumber, int wordNumber, uint32_t word);
+	void WriteString(int blockNumber, int wordNumber, std::string str);
 	void PrintMemory();
 	void PrintWord(int blockNumber, int wordNumber);
 	void PrintUntilEnd(int blockNumber, int wordNumber);

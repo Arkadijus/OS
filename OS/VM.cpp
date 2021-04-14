@@ -1,5 +1,6 @@
 #include "VM.h"
 #include <iostream>
+#include <string>
 #define VMBLOCKS 16
 #define VMWORDS 16
 
@@ -57,7 +58,6 @@ void VM::CMP()
 		processor.SF &= ~CPU::StatusFlags::CF;
 		processor.SF &= ~CPU::StatusFlags::ZF;
 	}
-
 }
 
 //	Duomenu
@@ -81,9 +81,9 @@ void VM::PrintWord(std::uint32_t block, std::uint32_t word)
 	memory.PrintWord(block, word);
 }
 
-int VM::WriteString(std::uint32_t block, std::uint32_t word, std::string str)
+void VM::WriteString(std::uint32_t block, std::uint32_t word)
 {
-	return memory.WriteString(block, word, str);
+	memory.WriteString(block, word, "");
 }
 
 void VM::PrintUntilEnd(std::uint32_t block, std::uint32_t word)
@@ -96,11 +96,11 @@ void VM::InputAX()
 	std::cin >> processor.AX;
 }
 
-int VM::InputWord(std::uint32_t block, std::uint32_t word)
+void VM::InputWord(std::uint32_t block, std::uint32_t word)
 {
 	uint32_t input;
 	std::cin >> input;
-	return memory.WriteWord(block, word, input);
+	memory.WriteWord(block, word, input);
 }
 
 void VM::Swap()
@@ -110,6 +110,11 @@ void VM::Swap()
 	processor.BX = temp;
 }
 
+void VM::Halt()
+{
+	//do who knows what
+}
+
 void VM::PrintMemory()
 {
 	memory.PrintMemory();
@@ -117,14 +122,20 @@ void VM::PrintMemory()
 
 const std::unordered_map<std::string, VM::voidFunc> VM::voidFunctions =
 {
-	{"RDAX", &CMP},
-	{"SWAP", &Swap},
-	{"PRAX", &CMP},
-	{"HALT", &CMP},
+	{"PRAX", &PrintAX},
+	{"RDAX", &InputAX},
+	{"_ADD", &ADD},
+	{"_SUB", &SUB},
+	{"_MUL", &MUL},
+	{"_CMP", &CMP},
+	{"HALT", &Halt}
 };
 
 const std::unordered_map<std::string, VM::voidFuncWithAddress> VM::voidFunctionsWithAddress =
 {
-	{"SD", &PrintUntilEnd},
+	{"LA", &ReadToAX},
+	{"SA", &WriteFromAX},
+	{"PR", &PrintWord},
 	{"PA", &PrintUntilEnd},
+	{"SD", &WriteString}
 };
