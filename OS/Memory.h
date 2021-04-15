@@ -23,6 +23,5 @@ public:
 	void WriteDataBlock(int toBlock, int toWord, const std::vector<std::uint32_t>& dataBlock);
 	void PrintMemory();
 	void PrintUntilEnd(int blockNumber, int wordNumber);
-	uint32_t GetWord(int blockNumber, int wordNumber);
 };
 

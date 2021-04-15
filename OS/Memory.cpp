@@ -96,8 +96,3 @@ void Memory::PrintUntilEnd(int blockNumber, int wordNumber)
 	}
 
 }
-
-uint32_t Memory::GetWord(int blockNumber, int wordNumber)
-{
-	return blocks[blockNumber].words[wordNumber];
-}
