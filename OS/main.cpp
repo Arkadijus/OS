@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <assert.h>
 
+#include "VM.h"
+
 std::uint32_t stringToWord(const std::string& strWord)
 {
     assert(strWord.size() <= 4);
@@ -68,6 +70,7 @@ bool isNumber(const std::string& line)
 
 std::uint32_t StringToNumber(const std::string& str)
 {
+    // TODO: remove unsighed ints, or add a full support
     // need to handle negative numbers
     
     std::uint32_t num = 0;
@@ -115,14 +118,15 @@ std::string removeWhitespace(const std::string& str)
     return str.substr(leadingWs, count);
 }
 
-void parseFile(const std::string& filename)
+std::vector<std::uint32_t> parseFile(const std::string& filename)
 {
     std::ifstream fin(filename);
+    std::vector<std::uint32_t> parsedCode;
     
     if (!fin.is_open())
     {
-        //error
-        return;
+        //TODO: add error check/interrupts
+        return {};
     }
 
     std::string line;
@@ -135,17 +139,20 @@ void parseFile(const std::string& filename)
             line = line.substr(0, pos);
         }
 
+        line = removeWhitespace(line);
+
         if (line.size() < 4)
         {
-            //to short
+            //TODO: add error check/interrupts. At this point parsing should fail, as all commands are at least 4 bytes
             continue;
         }
 
-        line = removeWhitespace(line);
-
-        std::string command = line.substr(0, 4); // check if string is long enough
-
+        std::string command = line.substr(0, 4);
+        //TODO: check if commands accepts an arg, fail/interrupt otherwise
         std::string arg = line.size() > 4 ? line.substr(4) : "";
+
+        //TODO: make sure that such command exists, also HALT command is required
+        parsedCode.push_back(stringToWord(command));
 
         // remove whitespace before argument
         arg = removeWhitespace(arg);
@@ -154,23 +161,39 @@ void parseFile(const std::string& filename)
         {
             if (isString(arg))
             {
-                auto a = parseString(arg);
-                for (auto d : a)
-                {
-                    std::cout << wordToString(d);
-                }
-                std::cout << std::endl;
+                std::vector<uint32_t> argBytes = parseString(arg);
+                // here i assume that it's correct
+                parsedCode.insert(parsedCode.end(), argBytes.begin(), argBytes.end());
             }
             else if (isNumber(arg))
             {
+                // TODO: string to number can fail
                 std::cout << StringToNumber(arg) << std::endl;
+                parsedCode.push_back(StringToNumber(arg));
+            }
+            else
+            {
+                assert(false);
+                //TODO: add error/interrupt for bad input
             }
         }
     }
+
+    return parsedCode;
 }
 
 int main()
 {
-    parseFile("addNumbers.txt");
+    /*
+    read file to VM memory code section (do validation while parsing)
+    set IC to 0
+    start VM
+    read command shown by IC and execute
+    */
+
+    auto parsedCode = parseFile("addNumbers.txt");
+    VM vm(parsedCode);
+    vm.Run();
+
     return 0;
 }

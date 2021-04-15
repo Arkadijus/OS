@@ -1,12 +1,61 @@
 #include "VM.h"
 #include <iostream>
 #include <string>
+
 #define VMBLOCKS 16
 #define VMWORDS 16
 
-VM::VM()
+VM::VM(const std::vector<std::uint32_t>& programToRun)
 {
-	
+	memory.WriteDataBlock(0, 0, programToRun);
+}
+
+// TODO: remove this
+static std::string wordToString(std::uint32_t word)
+{
+	std::string strWord(4, (unsigned char)0);
+
+	strWord[0] = (word >> 24) & 0xFF;
+	strWord[1] = (word >> 16) & 0xFF;
+	strWord[2] = (word >> 8) & 0xFF;
+	strWord[3] = word & 0xFF;
+
+	return strWord;
+}
+
+void VM::Run()
+{
+	while (true)
+	{
+		std::string instructionCode = wordToString(memory.GetWord(processor.IC++));
+
+		if (instructionCode == "HALT")
+			return;
+
+		auto instrItr1 = VM::voidFunctions.find(instructionCode);
+		if (instrItr1 != VM::voidFunctions.end())
+		{
+			//execute instr
+			VM::voidFunc instr = instrItr1->second;
+			(this->*instr)();
+		}
+		else
+		{
+			std::string instruction = instructionCode.substr(0, 2);
+			std::string address = instructionCode.substr(2);
+
+			int block = std::stoi(address.substr(0, 1), nullptr, 16) + 3; // TODO: TEMP
+			int word = std::stoi(address.substr(1, 1), nullptr, 16);
+
+			auto instrItr2 = VM::voidFunctionsWithAddress.find(instruction);
+			if (instrItr2 != VM::voidFunctionsWithAddress.end())
+			{
+				//execute instr
+				VM::voidFuncWithAddress instr = instrItr2->second;
+				(this->*instr)(block, word);
+			}
+		}
+	}
 }
 
 // Aritmetines
@@ -83,7 +132,18 @@ void VM::PrintWord(std::uint32_t block, std::uint32_t word)
 
 void VM::WriteString(std::uint32_t block, std::uint32_t word)
 {
-	memory.WriteString(block, word, "");
+	//TODO: doesnt work with integers
+	std::vector<uint32_t> dataBlock; // TODO: unecessary copying
+
+	while (true)
+	{
+		std::uint32_t data = memory.GetWord(processor.IC++);
+		dataBlock.push_back(data);
+		if (wordToString(data).find('$') != std::string::npos)
+			break;
+	}
+
+	memory.WriteDataBlock(block, word, dataBlock);
 }
 
 void VM::PrintUntilEnd(std::uint32_t block, std::uint32_t word)
@@ -124,6 +184,7 @@ const std::unordered_map<std::string, VM::voidFunc> VM::voidFunctions =
 {
 	{"PRAX", &PrintAX},
 	{"RDAX", &InputAX},
+	{"SWAP", &Swap},
 	{"_ADD", &ADD},
 	{"_SUB", &SUB},
 	{"_MUL", &MUL},

@@ -11,6 +11,13 @@ std::uint32_t Memory::GetWord(int blockNumber, int wordNumber)
 		return blocks[blockNumber].words[wordNumber];
 	//else error
 }
+std::uint32_t Memory::GetWord(int address)
+{
+	int block = address / WORDCOUNT;
+	int word = address % WORDCOUNT;
+	
+	return GetWord(block, word);
+}
 std::string Memory::GetWordString(int blockNumber, int wordNumber)
 {
 	if (blockNumber < BLOCKCOUNT && wordNumber < WORDCOUNT)
@@ -36,6 +43,22 @@ void Memory::WriteString(int blockNumber, int wordNumber, std::string str)
 			index++;
 			buffer[i] = str[index];
 		}
+	}
+}
+
+void Memory::WriteDataBlock(int toBlock, int toWord, const std::vector<std::uint32_t>& dataBlock)
+{
+	if (toBlock < 0 || toWord < 0)
+		return; // add out of bounds interrupt/error
+
+	if (toBlock * 16 + toWord + dataBlock.size() > BLOCKCOUNT * WORDCOUNT)
+		return; // add out of bounds interrupt/error
+
+	for (int i = 0; i < dataBlock.size(); i++)
+	{
+		int block = toBlock + i / WORDCOUNT;
+		int word = toWord + i % WORDCOUNT;
+		blocks[block].words[word] = dataBlock[i];
 	}
 }
 
@@ -67,10 +90,12 @@ void Memory::PrintUntilEnd(int blockNumber, int wordNumber)
 		{
 			while (j < WORDCOUNT)
 			{
-				bytes[0] = (unsigned char)blocks[i].words[j];
-				bytes[1] = (unsigned char)(blocks[i].words[j] >> 8);
-				bytes[2] = (unsigned char)(blocks[i].words[j] >> 16);
-				bytes[3] = (unsigned char)(blocks[i].words[j] >> 24);
+				std::uint32_t word = blocks[i].words[j];
+
+				bytes[0] = (word >> 24) & 0xFF;
+				bytes[1] = (word >> 16) & 0xFF;
+				bytes[2] = (word >> 8) & 0xFF;
+				bytes[3] = word & 0xFF;
 
 				for (int index = 0; index < 4; index++)
 				{
