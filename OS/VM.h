@@ -33,6 +33,14 @@ public:
 	void Swap();
 	void Halt();
 
+	void Jump(std::uint32_t block, std::uint32_t word);
+	void JumpMore(std::uint32_t block, std::uint32_t word);
+	void JumpLess(std::uint32_t block, std::uint32_t word);
+	void JumpEqual(std::uint32_t block, std::uint32_t word);
+	void JumpNotEqual(std::uint32_t block, std::uint32_t word);
+	void JumpMoreEqual(std::uint32_t block, std::uint32_t word);
+	void JumpLessEqual(std::uint32_t block, std::uint32_t word);
+
 	void PrintMemory();
 
 	using voidFunc = void (VM::*)();

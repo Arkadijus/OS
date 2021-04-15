@@ -90,14 +90,14 @@ void VM::DIV()
 //------------------------------------------------
 void VM::CMP()
 {
-	unsigned int tAX = processor.AX, tBX = processor.BX;
+	int tAX = processor.AX, tBX = processor.BX;
 	tAX -= tBX;
-	if (tAX == tBX)
+	if (tAX == 0)
 	{
 		processor.SF |= CPU::StatusFlags::ZF;
 		processor.SF &= ~CPU::StatusFlags::CF;
 	}
-	else if (tAX < tBX)
+	else if (tAX < 0)
 	{
 		processor.SF |= CPU::StatusFlags::CF;
 		processor.SF &= ~CPU::StatusFlags::ZF;
@@ -173,6 +173,56 @@ void VM::Swap()
 void VM::Halt()
 {
 	//do who knows what
+}
+
+void VM::Jump(std::uint32_t block, std::uint32_t word)
+{
+
+	processor.IC = block * WORDCOUNT + word;
+}
+
+void VM::JumpMore(std::uint32_t block, std::uint32_t word)
+{
+	CMP();
+	if (processor.SF & CPU::StatusFlags::ZF || processor.SF & CPU::StatusFlags::CF)
+		return;
+	Jump(block, word);
+}
+
+void VM::JumpLess(std::uint32_t block, std::uint32_t word)
+{
+	CMP();
+	if (processor.SF & CPU::StatusFlags::CF)
+		Jump(block, word);
+}
+
+void VM::JumpEqual(std::uint32_t block, std::uint32_t word)
+{
+	CMP();
+	if (processor.SF & CPU::StatusFlags::ZF)
+		Jump(block, word);
+}
+
+void VM::JumpNotEqual(std::uint32_t block, std::uint32_t word)
+{
+	CMP();
+	if (processor.SF & CPU::StatusFlags::ZF)
+		return;
+	Jump(block, word);
+}
+
+void VM::JumpMoreEqual(std::uint32_t block, std::uint32_t word)
+{
+	CMP();
+	if (processor.SF & CPU::StatusFlags::ZF || !(processor.SF & CPU::StatusFlags::CF))
+		Jump(block, word);
+}
+
+void VM::JumpLessEqual(std::uint32_t block, std::uint32_t word)
+{
+	CMP();
+	if (processor.SF & CPU::StatusFlags::ZF || processor.SF & CPU::StatusFlags::CF)
+		Jump(block, word);
 }
 
 void VM::PrintMemory()
