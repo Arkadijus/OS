@@ -6,7 +6,7 @@
 
 class VM
 {
-	CPU processor;
+	CPU& processor;
 	Memory memory;
 	std::string inputBuffer;
 public:

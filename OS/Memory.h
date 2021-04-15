@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 
-#define BLOCKCOUNT 20
+#define BLOCKCOUNT 16
 #define WORDCOUNT 16
 
 class Block

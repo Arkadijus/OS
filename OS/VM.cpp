@@ -5,10 +5,9 @@
 #define VMBLOCKS 16
 #define VMWORDS 16
 
-VM::VM(const std::vector<std::uint32_t>& programToRun, CPU& processor)
+VM::VM(const std::vector<std::uint32_t>& programToRun, CPU& processor) : processor(processor)
 {
-	memory.WriteDataBlock(0, 0, programToRun);
-	this->processor = processor;
+	memory.WriteDataBlock(13, 0, programToRun);
 }
 
 // TODO: remove this
@@ -45,7 +44,7 @@ void VM::Run()
 			std::string instruction = instructionCode.substr(0, 2);
 			std::string address = instructionCode.substr(2);
 
-			int block = std::stoi(address.substr(0, 1), nullptr, 16) + 3; // TODO: TEMP
+			int block = std::stoi(address.substr(0, 1), nullptr, 16); // TODO: TEMP
 			int word = std::stoi(address.substr(1, 1), nullptr, 16);
 
 			auto instrItr2 = VM::voidFunctionsWithAddress.find(instruction);
@@ -249,5 +248,12 @@ const std::unordered_map<std::string, VM::voidFuncWithAddress> VM::voidFunctions
 	{"SA", &WriteFromAX},
 	{"PR", &PrintWord},
 	{"PA", &PrintUntilEnd},
-	{"SD", &WriteString}
+	{"SD", &WriteString},
+	{"JP", &Jump},
+	{"JM", &JumpMore},
+	{"JL", &JumpLess},
+	{"JE", &JumpEqual},
+	{"JN", &JumpNotEqual},
+	{"JX", &JumpMoreEqual},
+	{"JY", &JumpLessEqual}
 };

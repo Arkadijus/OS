@@ -38,7 +38,7 @@ public:
 	std::uint32_t BX = 0;
 	std::uint32_t PTR = 0;
 
-	std::uint16_t IC = 0;
+	std::uint16_t IC = 16 * 13;
 
 public:
 

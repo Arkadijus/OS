@@ -1,3 +1,2 @@
 SD00 Iveskite pirma demeni$ // iraso ‘Iveskite pirma demeni$’ i atminti
-PA00 // Spausdina visus simbolius iki $
-JP00
+JPD0
