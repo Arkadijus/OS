@@ -30,21 +30,6 @@ void Memory::WriteWord(int blockNumber, int wordNumber, uint32_t word)
 		blocks[blockNumber].words[wordNumber] = word;
 	// else error
 }
-void Memory::WriteString(int blockNumber, int wordNumber, std::string str)
-{
-	// handle out of bounds and other stuff
-	int index = 0;
-	char c = str[index];
-	while (c != '$')
-	{
-		char buffer[4];
-		for (int i = 0; i < 4; i++)
-		{
-			index++;
-			buffer[i] = str[index];
-		}
-	}
-}
 
 void Memory::WriteDataBlock(int toBlock, int toWord, const std::vector<std::uint32_t>& dataBlock)
 {
@@ -74,10 +59,6 @@ void Memory::PrintMemory()
 	}
 }
 
-void Memory::PrintWord(int blockNumber, int wordNumber)
-{
-	std::cout << blocks[blockNumber].words[wordNumber] << std::endl;
-}
 
 void Memory::PrintUntilEnd(int blockNumber, int wordNumber)
 {
@@ -114,4 +95,9 @@ void Memory::PrintUntilEnd(int blockNumber, int wordNumber)
 		}
 	}
 
+}
+
+uint32_t Memory::GetWord(int blockNumber, int wordNumber)
+{
+	return blocks[blockNumber].words[wordNumber];
 }

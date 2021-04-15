@@ -127,7 +127,7 @@ void VM::PrintAX()
 
 void VM::PrintWord(std::uint32_t block, std::uint32_t word)
 {
-	memory.PrintWord(block, word);
+	std::cout << memory.GetWord(block, word) << std::endl;
 }
 
 void VM::WriteString(std::uint32_t block, std::uint32_t word)
