@@ -142,11 +142,13 @@
     <ClCompile Include="CPU.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="RM.cpp" />
     <ClCompile Include="VM.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPU.h" />
     <ClInclude Include="Memory.h" />
+    <ClInclude Include="RM.h" />
     <ClInclude Include="VM.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

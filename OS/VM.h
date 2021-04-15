@@ -11,7 +11,7 @@ class VM
 	std::string inputBuffer;
 public:
 
-	VM(const std::vector<std::uint32_t>& programToRun);
+	VM(const std::vector<std::uint32_t>& programToRun, CPU& processor);
 
 	void Run();
 

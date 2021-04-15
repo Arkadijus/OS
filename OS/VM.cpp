@@ -5,9 +5,10 @@
 #define VMBLOCKS 16
 #define VMWORDS 16
 
-VM::VM(const std::vector<std::uint32_t>& programToRun)
+VM::VM(const std::vector<std::uint32_t>& programToRun, CPU& processor)
 {
 	memory.WriteDataBlock(0, 0, programToRun);
+	this->processor = processor;
 }
 
 // TODO: remove this

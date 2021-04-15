@@ -7,6 +7,7 @@
 #include <assert.h>
 
 #include "VM.h"
+#include "RM.h"
 
 std::uint32_t stringToWord(const std::string& strWord)
 {
@@ -192,8 +193,11 @@ int main()
     */
 
     auto parsedCode = parseFile("addNumbers.txt");
-    VM vm(parsedCode);
-    vm.Run();
+    RM rm;
+    rm.CreateProcess(parsedCode);
+    rm.RunAll();
+    //VM vm(parsedCode);
+    //vm.Run();
 
     return 0;
 }
