@@ -3,19 +3,44 @@
 #include <string>
 
 #include "Tools.h"
+#include <assert.h>
 
 #define VMBLOCKS 16
 #define VMWORDS 16
 
-VM::VM(Memory& memory, CPU& processor)
-	: memory(memory), processor(processor) {}
+VM::VM(Memory& memory, CPU* processor)
+	: memory(memory), processor(processor), state({ 0 })
+{
+	assert(processor);
+	// TODO: since i've changed it to pointer, must ensure that its not nullptr.
+	// for now just an assert
+}
+
+void VM::saveState()
+{
+	state.SF = processor->SF;
+	state.AX = processor->AX;
+	state.BX = processor->BX;
+	state.PTR = processor->PTR;
+	state.IC = processor->IC;
+}
+
+void VM::restoreState()
+{
+	processor->SF = state.SF;
+	processor->AX = state.AX;
+	processor->BX = state.BX;
+	processor->PTR = state.PTR;
+	processor->IC = state.IC;
+}
+
 
 
 void VM::Run()
 {
 	while (true)
 	{
-		std::string instructionCode = Tools::wordToString(memory.GetWord(processor.IC++));
+		std::string instructionCode = Tools::wordToString(memory.GetWord(processor->IC++));
 
 		if (instructionCode == "HALT")
 			return;
@@ -46,71 +71,100 @@ void VM::Run()
 	}
 }
 
+void VM::ExecuteInstruction()
+{
+	std::string instructionCode = Tools::wordToString(memory.GetWord(processor->IC++));
+
+	auto instrItr1 = VM::voidFunctions.find(instructionCode);
+	if (instrItr1 != VM::voidFunctions.end())
+	{
+		//execute instr
+		VM::voidFunc instr = instrItr1->second;
+		(this->*instr)();
+	}
+	else
+	{
+		std::string instruction = instructionCode.substr(0, 2);
+		std::string address = instructionCode.substr(2);
+
+		int block = std::stoi(address.substr(0, 1), nullptr, 16); // TODO: TEMP
+		int word = std::stoi(address.substr(1, 1), nullptr, 16);
+
+		auto instrItr2 = VM::voidFunctionsWithAddress.find(instruction);
+		if (instrItr2 != VM::voidFunctionsWithAddress.end())
+		{
+			//execute instr
+			VM::voidFuncWithAddress instr = instrItr2->second;
+			(this->*instr)(block, word);
+		}
+	}
+}
+
 // Aritmetines
 //------------------------------------------------
 void VM::ADD()
 {
-	if (processor.AX > UINT_MAX - processor.BX)
-		processor.SF |= CPU::StatusFlags::OF;
-	processor.AX += processor.BX;
+	if (processor->AX > UINT_MAX - processor->BX)
+		processor->SF |= CPU::StatusFlags::OF;
+	processor->AX += processor->BX;
 }
 
 void VM::SUB()
 {
-	if (processor.AX > processor.BX)
-		processor.SF |= CPU::StatusFlags::OF;
-	processor.AX -= processor.BX;
+	if (processor->AX > processor->BX)
+		processor->SF |= CPU::StatusFlags::OF;
+	processor->AX -= processor->BX;
 }
 
 void VM::MUL()
 {
-	if (processor.AX > UINT_MAX / processor.BX)
-		processor.SF |= CPU::StatusFlags::OF;
-	processor.AX *= processor.BX;
+	if (processor->AX > UINT_MAX / processor->BX)
+		processor->SF |= CPU::StatusFlags::OF;
+	processor->AX *= processor->BX;
 }
 
 void VM::DIV()
 {
-	if (processor.BX != 0) // maybe exception here or smth or whatever 
-		processor.AX /= processor.BX;
+	if (processor->BX != 0) // maybe exception here or smth or whatever 
+		processor->AX /= processor->BX;
 }
 // Palyginimo
 //------------------------------------------------
 void VM::CMP()
 {
-	int tAX = processor.AX, tBX = processor.BX;
+	int tAX = processor->AX, tBX = processor->BX;
 	tAX -= tBX;
 	if (tAX == 0)
 	{
-		processor.SF |= CPU::StatusFlags::ZF;
-		processor.SF &= ~CPU::StatusFlags::CF;
+		processor->SF |= CPU::StatusFlags::ZF;
+		processor->SF &= ~CPU::StatusFlags::CF;
 	}
 	else if (tAX < 0)
 	{
-		processor.SF |= CPU::StatusFlags::CF;
-		processor.SF &= ~CPU::StatusFlags::ZF;
+		processor->SF |= CPU::StatusFlags::CF;
+		processor->SF &= ~CPU::StatusFlags::ZF;
 	}
 	else // tAX > tBX
 	{
-		processor.SF &= ~CPU::StatusFlags::CF;
-		processor.SF &= ~CPU::StatusFlags::ZF;
+		processor->SF &= ~CPU::StatusFlags::CF;
+		processor->SF &= ~CPU::StatusFlags::ZF;
 	}
 }
 
 //	Duomenu
 void VM::ReadToAX(std::uint32_t block, std::uint32_t word)
 {
-	processor.AX = memory.GetWord(block, word);
+	processor->AX = memory.GetWord(block, word);
 }
 
 void VM::WriteFromAX(std::uint32_t block, std::uint32_t word)
 {
-	memory.WriteWord(block, word, processor.AX);
+	memory.WriteWord(block, word, processor->AX);
 }
 
 void VM::PrintAX()
 {
-	std::cout << processor.AX << std::endl;
+	std::cout << processor->AX << std::endl;
 }
 
 void VM::PrintWord(std::uint32_t block, std::uint32_t word)
@@ -125,7 +179,7 @@ void VM::PrintWord(std::uint32_t block, std::uint32_t word)
 //
 //	while (true)
 //	{
-//		std::uint32_t data = memory.GetWord(processor.IC++);
+//		std::uint32_t data = memory.GetWord(processor->IC++);
 //		dataBlock.push_back(data);
 //		if (Tools::wordToString(data).find('$') != std::string::npos)
 //			break;
@@ -141,7 +195,7 @@ void VM::PrintUntilEnd(std::uint32_t block, std::uint32_t word)
 
 void VM::InputAX()
 {
-	std::cin >> processor.AX;
+	std::cin >> processor->AX;
 }
 
 void VM::InputWord(std::uint32_t block, std::uint32_t word)
@@ -153,26 +207,26 @@ void VM::InputWord(std::uint32_t block, std::uint32_t word)
 
 void VM::Swap()
 {
-	uint32_t temp = processor.AX;
-	processor.AX = processor.BX;
-	processor.BX = temp;
+	uint32_t temp = processor->AX;
+	processor->AX = processor->BX;
+	processor->BX = temp;
 }
 
 void VM::Halt()
 {
-	//do who knows what
+	processor->SI = 1;
 }
 
 void VM::Jump(std::uint32_t block, std::uint32_t word)
 {
 
-	processor.IC = block * WORDCOUNT + word;
+	processor->IC = block * WORDCOUNT + word;
 }
 
 void VM::JumpMore(std::uint32_t block, std::uint32_t word)
 {
 	CMP();
-	if (processor.SF & CPU::StatusFlags::ZF || processor.SF & CPU::StatusFlags::CF)
+	if (processor->SF & CPU::StatusFlags::ZF || processor->SF & CPU::StatusFlags::CF)
 		return;
 	Jump(block, word);
 }
@@ -180,21 +234,21 @@ void VM::JumpMore(std::uint32_t block, std::uint32_t word)
 void VM::JumpLess(std::uint32_t block, std::uint32_t word)
 {
 	CMP();
-	if (processor.SF & CPU::StatusFlags::CF)
+	if (processor->SF & CPU::StatusFlags::CF)
 		Jump(block, word);
 }
 
 void VM::JumpEqual(std::uint32_t block, std::uint32_t word)
 {
 	CMP();
-	if (processor.SF & CPU::StatusFlags::ZF)
+	if (processor->SF & CPU::StatusFlags::ZF)
 		Jump(block, word);
 }
 
 void VM::JumpNotEqual(std::uint32_t block, std::uint32_t word)
 {
 	CMP();
-	if (processor.SF & CPU::StatusFlags::ZF)
+	if (processor->SF & CPU::StatusFlags::ZF)
 		return;
 	Jump(block, word);
 }
@@ -202,14 +256,14 @@ void VM::JumpNotEqual(std::uint32_t block, std::uint32_t word)
 void VM::JumpMoreEqual(std::uint32_t block, std::uint32_t word)
 {
 	CMP();
-	if (processor.SF & CPU::StatusFlags::ZF || !(processor.SF & CPU::StatusFlags::CF))
+	if (processor->SF & CPU::StatusFlags::ZF || !(processor->SF & CPU::StatusFlags::CF))
 		Jump(block, word);
 }
 
 void VM::JumpLessEqual(std::uint32_t block, std::uint32_t word)
 {
 	CMP();
-	if (processor.SF & CPU::StatusFlags::ZF || processor.SF & CPU::StatusFlags::CF)
+	if (processor->SF & CPU::StatusFlags::ZF || processor->SF & CPU::StatusFlags::CF)
 		Jump(block, word);
 }
 

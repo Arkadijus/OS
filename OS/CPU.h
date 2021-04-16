@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "Memory.h"
+
 class CPU
 {
 public:

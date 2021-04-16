@@ -107,17 +107,93 @@ void RM::fileToMemory(const std::string& filename, Memory& memory)
     }
 }
 
+void RM::invalidInstructionRoutine()
+{
+    std::cout << "error: invalid instruction!" << std::endl;
+    killExecutingVM();
+}
+
+void RM::invalidAddressRoutine()
+{
+    std::cout << "error: invalid address!" << std::endl;
+    killExecutingVM();
+}
+
+void RM::HALTInstructionRoutine()
+{
+    std::cout << "halt instruction" << std::endl;
+    killExecutingVM();
+}
+
+void RM::executeInterruptRoutines()
+{
+    switch (processor.PI)
+    {
+    case ProgramInterrupt::invalidInstruction:
+        invalidInstructionRoutine();
+        break;
+    case ProgramInterrupt::invalidAddress:
+        invalidAddressRoutine();
+        break;
+    default:
+        break;
+    }
+
+    switch (processor.SI)
+    {
+    case SupervisorInterrupt::HALTInstruction:
+        HALTInstructionRoutine();
+        break;
+    default:
+        break;
+    }
+}
+
+void RM::handleInterrupts()
+{
+    if (!isValidProgramIdx())
+        return;
+
+    programs[executingProgram].saveState();
+    executeInterruptRoutines();
+
+    if (isValidProgramIdx())
+        programs[executingProgram].restoreState();
+}
+
 void RM::StartProgram(const std::string& programFile)
 {
 	// give memory to VM
     fileToMemory(programFile, memory);
-    programs.push_back(VM(memory, processor));
+    programs.push_back(VM(memory, &processor));
+    
+	// TODO: make sure that VM was created
+	if (executingProgram == -1)
+        executingProgram = 0;
 }
 
 void RM::RunAll()
 {
-	for (size_t i = 0; i < programs.size(); i++)
+	while (true)
 	{
-		programs[i].Run();
+        if (!isValidProgramIdx())
+            break;
+
+        programs[executingProgram].ExecuteInstruction();
+        if (interruptHappened())
+            handleInterrupts();
 	}
+}
+
+void RM::killExecutingVM()
+{
+    if (!isValidProgramIdx())
+        return;
+
+    programs.erase(programs.begin() + executingProgram);
+
+    if (programs.size() == 0)
+        executingProgram = -1;
+    else
+        executingProgram %= programs.size();
 }
