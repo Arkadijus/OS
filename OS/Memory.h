@@ -20,7 +20,9 @@ public:
 	std::uint32_t GetWord(int address);
 	std::string GetWordString(int blockNumber, int wordNumber);
 	void WriteWord(int blockNumber, int wordNumber, std::uint32_t word);
+	void WriteWord(int address, std::uint32_t word);
 	void WriteDataBlock(int toBlock, int toWord, const std::vector<std::uint32_t>& dataBlock);
+	void WriteDataBlock(int toAddress, const std::vector<std::uint32_t>& dataBlock);
 	void PrintMemory();
 	void PrintUntilEnd(int blockNumber, int wordNumber);
 };

@@ -11,7 +11,7 @@ class VM
 	std::string inputBuffer;
 public:
 
-	VM(const std::vector<std::uint32_t>& programToRun, CPU& processor);
+	VM(Memory& memory, CPU& processor);
 
 	void Run();
 
@@ -26,7 +26,7 @@ public:
 	void WriteFromAX(std::uint32_t block, std::uint32_t word);
 	void PrintAX();
 	void PrintWord(std::uint32_t block, std::uint32_t word);
-	void WriteString(std::uint32_t block, std::uint32_t word);
+	//void WriteString(std::uint32_t block, std::uint32_t word);
 	void PrintUntilEnd(std::uint32_t block, std::uint32_t word);
 	void InputAX();
 	void InputWord(std::uint32_t block, std::uint32_t word);

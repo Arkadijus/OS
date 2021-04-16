@@ -24,11 +24,19 @@ std::string Memory::GetWordString(int blockNumber, int wordNumber)
 		return std::to_string(blocks[blockNumber].words[wordNumber]);
 	//else error
 }
-void Memory::WriteWord(int blockNumber, int wordNumber, uint32_t word)
+void Memory::WriteWord(int blockNumber, int wordNumber, uint32_t data)
 {
 	if (blockNumber < BLOCKCOUNT && wordNumber < WORDCOUNT)
-		blocks[blockNumber].words[wordNumber] = word;
+		blocks[blockNumber].words[wordNumber] = data;
 	// else error
+}
+
+void Memory::WriteWord(int address, std::uint32_t data)
+{
+	int block = address / WORDCOUNT;
+	int word = address % WORDCOUNT;
+
+	WriteWord(block, word, data);
 }
 
 void Memory::WriteDataBlock(int toBlock, int toWord, const std::vector<std::uint32_t>& dataBlock)
@@ -39,12 +47,20 @@ void Memory::WriteDataBlock(int toBlock, int toWord, const std::vector<std::uint
 	if (toBlock * 16 + toWord + dataBlock.size() > BLOCKCOUNT * WORDCOUNT)
 		return; // add out of bounds interrupt/error
 
-	for (int i = 0; i < dataBlock.size(); i++)
+	for (size_t i = 0; i < dataBlock.size(); i++)
 	{
 		int block = toBlock + i / WORDCOUNT;
 		int word = toWord + i % WORDCOUNT;
 		blocks[block].words[word] = dataBlock[i];
 	}
+}
+
+void Memory::WriteDataBlock(int toAddress, const std::vector<std::uint32_t>& dataBlock)
+{
+	int block = toAddress / WORDCOUNT;
+	int word = toAddress % WORDCOUNT;
+
+	WriteDataBlock(block, word, dataBlock);
 }
 
 void Memory::PrintMemory()

@@ -2,32 +2,20 @@
 #include <iostream>
 #include <string>
 
+#include "Tools.h"
+
 #define VMBLOCKS 16
 #define VMWORDS 16
 
-VM::VM(const std::vector<std::uint32_t>& programToRun, CPU& processor) : processor(processor)
-{
-	memory.WriteDataBlock(13, 0, programToRun);
-}
+VM::VM(Memory& memory, CPU& processor)
+	: memory(memory), processor(processor) {}
 
-// TODO: remove this
-static std::string wordToString(std::uint32_t word)
-{
-	std::string strWord(4, (unsigned char)0);
-
-	strWord[0] = (word >> 24) & 0xFF;
-	strWord[1] = (word >> 16) & 0xFF;
-	strWord[2] = (word >> 8) & 0xFF;
-	strWord[3] = word & 0xFF;
-
-	return strWord;
-}
 
 void VM::Run()
 {
 	while (true)
 	{
-		std::string instructionCode = wordToString(memory.GetWord(processor.IC++));
+		std::string instructionCode = Tools::wordToString(memory.GetWord(processor.IC++));
 
 		if (instructionCode == "HALT")
 			return;
@@ -130,21 +118,21 @@ void VM::PrintWord(std::uint32_t block, std::uint32_t word)
 	std::cout << memory.GetWord(block, word) << std::endl;
 }
 
-void VM::WriteString(std::uint32_t block, std::uint32_t word)
-{
-	//TODO: doesnt work with integers
-	std::vector<uint32_t> dataBlock; // TODO: unecessary copying
-
-	while (true)
-	{
-		std::uint32_t data = memory.GetWord(processor.IC++);
-		dataBlock.push_back(data);
-		if (wordToString(data).find('$') != std::string::npos)
-			break;
-	}
-
-	memory.WriteDataBlock(block, word, dataBlock);
-}
+//void VM::WriteString(std::uint32_t block, std::uint32_t word)
+//{
+//	//TODO: doesnt work with integers
+//	std::vector<uint32_t> dataBlock; // TODO: unecessary copying
+//
+//	while (true)
+//	{
+//		std::uint32_t data = memory.GetWord(processor.IC++);
+//		dataBlock.push_back(data);
+//		if (Tools::wordToString(data).find('$') != std::string::npos)
+//			break;
+//	}
+//
+//	memory.WriteDataBlock(block, word, dataBlock);
+//}
 
 void VM::PrintUntilEnd(std::uint32_t block, std::uint32_t word)
 {
@@ -248,7 +236,7 @@ const std::unordered_map<std::string, VM::voidFuncWithAddress> VM::voidFunctions
 	{"SA", &WriteFromAX},
 	{"PR", &PrintWord},
 	{"PA", &PrintUntilEnd},
-	{"SD", &WriteString},
+	//{"SD", &WriteString},
 	{"JP", &Jump},
 	{"JM", &JumpMore},
 	{"JL", &JumpLess},

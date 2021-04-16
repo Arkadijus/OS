@@ -1,15 +1,20 @@
 
 // addresses in Hex
 
-SD00 Iveskite pirma demeni$ // iraso ‘Iveskite pirma demeni$’ i atminti
-SD30 Iveskite antra demeni$
-SD50 Suma:$ 
-PA00 // Spausdina visus simbolius iki $
+.data // data segment
+
+$$40 Iveskite pirma demeni$ // iraso ‘Iveskite pirma demeni$’ i atminti
+$$60 Iveskite antra demeni$
+$$80 Suma:$ 
+
+.code // code segment
+
+PA40 // Spausdina visus simbolius iki $
 RDAX // is klaviaturos nuskaitoma reiksme ir irasoma i AX
-PA30
+PA60
 SWAP // sukeicia registro AX ir BX reiksmes
 RDAX
 _ADD // sudeda AX su BX ir issaugo rezultata AX registre
-PA50
+PA80
 PRAX
 HALT
