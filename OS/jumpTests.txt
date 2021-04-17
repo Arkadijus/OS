@@ -1,0 +1,19 @@
+
+// addresses in Hex
+
+.data // data segment
+	
+$$40 Enter BX$
+$$60 Enter AX same as BX to Quit$
+
+.code // code segment
+
+PA40 // Spausdina visus simbolius iki $
+RDAX // is klaviaturos nuskaitoma reiksme ir irasoma i AX
+PA60
+SWAP // sukeicia registro AX ir BX reiksmes
+RDAX
+JN00
+PA80
+PRAX
+HALT

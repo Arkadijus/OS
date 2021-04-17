@@ -69,7 +69,7 @@ int main()
 
     RM rm;
     //rm.StartProgram("addNumbers.txt");
-    rm.StartProgram("printLoop.txt");
+    rm.StartProgram("addNumbers.txt");
     rm.RunAll();
 
     return 0;

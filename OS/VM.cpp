@@ -280,6 +280,7 @@ const std::unordered_map<std::string, VM::voidFunc> VM::voidFunctions =
 	{"_ADD", &ADD},
 	{"_SUB", &SUB},
 	{"_MUL", &MUL},
+	{"_DIV", &DIV},
 	{"_CMP", &CMP},
 	{"HALT", &Halt}
 };
