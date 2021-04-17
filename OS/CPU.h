@@ -2,6 +2,12 @@
 #include <cstdint>
 #include "Memory.h"
 
+//TODO apibrezti doce PI reiksmes
+//TODO aprasyti doce kas vyksta su HALT
+//TODO reiksmes VM saugomos atmintyje (ne random)
+// Procesoriaus darbo algoritmas
+// Komandos realaus procesoriaus rezimu
+
 class CPU
 {
 public:
