@@ -142,6 +142,8 @@
     <ClCompile Include="CPU.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Process.cpp" />
+    <ClCompile Include="Resource.cpp" />
     <ClCompile Include="RM.cpp" />
     <ClCompile Include="Tools.cpp" />
     <ClCompile Include="VM.cpp" />
@@ -149,6 +151,8 @@
   <ItemGroup>
     <ClInclude Include="CPU.h" />
     <ClInclude Include="Memory.h" />
+    <ClInclude Include="Process.h" />
+    <ClInclude Include="Resource.h" />
     <ClInclude Include="RM.h" />
     <ClInclude Include="Tools.h" />
     <ClInclude Include="VM.h" />
