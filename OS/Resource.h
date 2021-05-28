@@ -14,7 +14,7 @@ class Resource;
 
 struct Element
 {
-	Resource* resource;
+	Resource* resource = nullptr;
 	Process* sender = nullptr;
 	Process* receiver = nullptr;
 	std::vector<std::string>* strings = nullptr;
