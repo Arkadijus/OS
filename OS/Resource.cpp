@@ -27,8 +27,7 @@ void Resource::DeleteResource(int id)
 		if (resources[i]->id == id)
 		{
 			for (int j = 0; j < resources[i]->waitingProcesses.size(); j++)
-				//Process::activateProcess(resources[i]->waitingProcesses[j]->m_name)
-				//resources[i]->waitingProcesses[j]->activateProcess();
+				Process::activateProcess(resources[i]->waitingProcesses[j]->getID());
 			for (int j = 0; j < resources[i]->elements.size(); i++)
 				delete resources[i]->elements[j];
 			delete resources[i];
@@ -39,7 +38,7 @@ void Resource::DeleteResource(int id)
 
 bool Resource::RequestResource(Process* requestingProcess, std::string name)
 {
-	requestingProcess->stopProcess(); // stop it regardless of if there is such a resource or not
+	Process::stopProcess(requestingProcess->getID()); // stop it regardless of if there is such a resource or not
 	for (int i = 0; i < resources.size(); i++)
 	{
 		if (resources[i]->name == name) // the resource we need
