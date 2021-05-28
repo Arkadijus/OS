@@ -27,7 +27,8 @@ void Resource::DeleteResource(int id)
 		if (resources[i]->id == id)
 		{
 			for (int j = 0; j < resources[i]->waitingProcesses.size(); j++)
-				resources[i]->waitingProcesses[j]->activateProcess();
+				//Process::activateProcess(resources[i]->waitingProcesses[j]->m_name)
+				//resources[i]->waitingProcesses[j]->activateProcess();
 			for (int j = 0; j < resources[i]->elements.size(); i++)
 				delete resources[i]->elements[j];
 			delete resources[i];

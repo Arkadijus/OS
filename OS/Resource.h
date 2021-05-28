@@ -4,6 +4,7 @@
 #include <memory>
 
 class Process;
+class Resource;
 
 // mos end -> sender->interface receiver->startstop
 // task in supervizor mem -> stringu vektorius sender->read from interface receiver->JCL
@@ -13,6 +14,7 @@ class Process;
 
 struct Element
 {
+	Resource* resource;
 	Process* sender = nullptr;
 	Process* receiver = nullptr;
 	std::vector<std::string>* strings = nullptr;
