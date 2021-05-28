@@ -74,6 +74,14 @@ void Process::activateProcess(const std::string& name)
 {
 }
 
+void Process::stopProcess(int ID)
+{
+}
+
+void Process::activateProcess(int ID)
+{
+}
+
 void StartStopProcess::run()
 {
 	// initialize system resources
@@ -107,8 +115,10 @@ void StartStopProcess::run()
 void ReadFromInterfaceProcess::run()
 {
 	// Block for FromInterface resource
+	Resource::RequestResource(this, "FromInterface");
 	// Read file
 	// Block for memory resource
+	Resource::RequestResource(this, "UserMemory");
 	// copy file into memory
 	// Send TaskInMemory
 

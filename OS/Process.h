@@ -43,6 +43,9 @@ public:
 	static void stopProcess(const std::string& name);
 	static void activateProcess(const std::string& name);
 
+	static void stopProcess(int ID);
+	static void activateProcess(int ID);
+
 
 	std::uint32_t getID() const { return m_ID; }
 protected:
