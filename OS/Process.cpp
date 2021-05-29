@@ -203,3 +203,11 @@ void JobGovernorProcess::run()
 //void JCLProcess::run()
 //{
 //}
+void Process::deleteElements(Resource* resource)
+{
+	for (int i = 0; i < m_elementList.size(); i++)
+	{
+		if (m_elementList[i]->resource == resource)
+			m_elementList.erase(m_elementList.begin() + i);
+	}
+}

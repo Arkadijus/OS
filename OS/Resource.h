@@ -16,7 +16,6 @@ class Resource;
 
 struct Element
 {
-	bool available = true;
 	Resource* resource = nullptr;
 	Process* sender = nullptr;
 	Process* receiver = nullptr;
@@ -30,11 +29,18 @@ struct Element
 	}
 };
 
+struct WaitingProcess
+{
+	Process* process;
+	int elementCount;
+	WaitingProcess(Process* process, int elementCount) : process(process), elementCount(elementCount) {};
+};
+
 class Resource
 {
 	Process* parentProcess = nullptr;
-	std::vector<Process*> waitingProcesses;
-	void AssignResources();
+	std::vector<WaitingProcess> waitingProcesses;
+	static void AssignResources();
 public:
 	int id;
 	std::string name;
@@ -45,7 +51,7 @@ public:
 	~Resource();
 	static int CreateResource(Process* parentProcess, std::string name);
 	static void DeleteResource(int id);
-	static bool RequestResource(Process* requestingProcess, std::string name);
+	static void RequestResource(Process* requestingProcess, std::string name, int elementCount);
 	static void FreeResource(Process* parentProcess, Element* element, std::string name);
 };
 

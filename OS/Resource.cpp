@@ -27,16 +27,27 @@ void Resource::DeleteResource(int id)
 		if (resources[i]->id == id)
 		{
 			for (size_t j = 0; j < resources[i]->waitingProcesses.size(); j++)
-				Process::activateProcess(resources[i]->waitingProcesses[j]->getID());
+			{
+				auto state = resources[i]->waitingProcesses[j].process->getState();
+				if(state == ProcessState::Blocked)
+					resources[i]->waitingProcesses[j].process->setState(ProcessState::Ready);
+				else if (state == ProcessState::BlockedStopped)
+					resources[i]->waitingProcesses[j].process->setState(ProcessState::ReadyStopped);
+			}
 			for (size_t j = 0; j < resources[i]->elements.size(); i++)
 				delete resources[i]->elements[j];
+			auto& processes = Kernel::getInstance().ProcessList;
+			for (int j = 0; j < processes.size(); j++)
+			{
+				processes[i]->deleteElements(resources[i]);
+			}
 			delete resources[i];
 			break;
 		}
 	}
 }
 
-bool Resource::RequestResource(Process* requestingProcess, std::string name)
+void Resource::RequestResource(Process* requestingProcess, std::string name, int elementCount)
 {
 	auto& resources = Kernel::getInstance().ResourceList;
 	bool found = false;
@@ -45,7 +56,7 @@ bool Resource::RequestResource(Process* requestingProcess, std::string name)
 	{
 		if (resources[i]->name == name) // the resource we need
 		{
-			resources[i]->waitingProcesses.push_back(requestingProcess);
+			resources[i]->waitingProcesses.push_back(WaitingProcess(requestingProcess, elementCount));
 			found = true;
 			break;
 		}
@@ -57,13 +68,10 @@ bool Resource::RequestResource(Process* requestingProcess, std::string name)
 		Resource::RequestResource(requestingProcess, name);
 	}
 
-	// resursu paskirstytojas?
-	// planuotojas po paskirstytojo
+	AssignResources();
 
 	if (found)
 		Kernel::getInstance().runScheduler();
-
-	return true;
 }
 
 void Resource::FreeResource(Process* parentProcess, Element* element, std::string name)
@@ -74,6 +82,7 @@ void Resource::FreeResource(Process* parentProcess, Element* element, std::strin
 	{
 		if (resources[i]->name == name) // resource we need
 		{
+			element->resource = resources[i];
 			resources[i]->elements.push_back(element);
 			found = true;
 		}
@@ -84,19 +93,46 @@ void Resource::FreeResource(Process* parentProcess, Element* element, std::strin
 		Resource::CreateResource(parentProcess, name);
 		Resource::FreeResource(parentProcess, element, name);
 	}
-	// resursu paskirsytojas
+	AssignResources();
 }
 
 void Resource::AssignResources()
 {
 	// so I go trough each element in resources and check the processes that need them, choose based on priority
+	auto& resources = Kernel::getInstance().ResourceList;
 	for (int i = 0; i < resources.size(); i++)
 	{
 		int highestPriorityProcess = 0;
 		int highestPriority = 0;
 		for (int j = 0; j < resources[i]->waitingProcesses.size(); i++)
 		{
-			if(resources[i]->waitingProcesses[j]->)
+			int tempPriority = resources[i]->waitingProcesses[j].process->getPriority();
+			if (tempPriority > highestPriority)
+			{
+				highestPriority = tempPriority;
+				highestPriorityProcess = j;
+			}
 		}
+		// at this point we have the highest priority process for that resource, now we try to assign
+		// just assign as many as we have or as many as needed
+
+		while (resources[i]->waitingProcesses[highestPriorityProcess].elementCount > 0 && resources[i]->elements.size() > 0)
+		{
+			if (resources[i]->elements[0]->receiver == nullptr || resources[i]->elements[0]->receiver == resources[i]->waitingProcesses[highestPriorityProcess].process)
+			{
+				resources[i]->waitingProcesses[highestPriorityProcess].process->addElement(resources[i]->elements[0]);
+				resources[i]->elements.erase(resources[i]->elements.begin());
+			}
+		}
+		if (resources[i]->waitingProcesses[highestPriorityProcess].elementCount == 0)
+		{
+			auto state = resources[i]->waitingProcesses[highestPriorityProcess].process->getState();
+			if (state == ProcessState::Blocked)
+				resources[i]->waitingProcesses[highestPriorityProcess].process->setState(ProcessState::Ready);
+			else if (state == ProcessState::BlockedStopped)
+				resources[i]->waitingProcesses[highestPriorityProcess].process->setState(ProcessState::ReadyStopped);
+		}
+
+		// not sure what to do otherwise? Probably nothing but that leaves the question maybe to prioritize these elements that request the least elements first
 	}
 }
