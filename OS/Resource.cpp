@@ -86,3 +86,17 @@ void Resource::FreeResource(Process* parentProcess, Element* element, std::strin
 	}
 	// resursu paskirsytojas
 }
+
+void Resource::AssignResources()
+{
+	// so I go trough each element in resources and check the processes that need them, choose based on priority
+	for (int i = 0; i < resources.size(); i++)
+	{
+		int highestPriorityProcess = 0;
+		int highestPriority = 0;
+		for (int j = 0; j < resources[i]->waitingProcesses.size(); i++)
+		{
+			if(resources[i]->waitingProcesses[j]->)
+		}
+	}
+}
