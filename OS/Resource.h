@@ -14,6 +14,7 @@ class Resource;
 
 struct Element
 {
+	bool available = true;
 	Resource* resource = nullptr;
 	Process* sender = nullptr;
 	Process* receiver = nullptr;
@@ -30,6 +31,7 @@ class Resource
 {
 	Process* parentProcess = nullptr;
 	std::vector<std::unique_ptr<Process>> waitingProcesses;
+	void AssignResources();
 public:
 	int id;
 	std::string name;
