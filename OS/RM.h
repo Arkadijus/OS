@@ -54,5 +54,6 @@ public:
 	RM() : executingProgram(-1) {}
 	void StartProgram(const std::string& programFile);
 	void RunAll();
+	CPU* GetProcessor() { return &processor; }
 };
 

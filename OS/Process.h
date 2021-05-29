@@ -5,17 +5,18 @@
 #include <string>
 #include <memory>
 
+#include "Kernel.h"
 #include "Resource.h"
 #include "CPU.h"
 
 
 struct SavedRegisters
 {
-	std::uint8_t SF;
-	std::uint32_t AX;
-	std::uint32_t BX;
-	std::uint32_t PTR;
-	std::uint16_t IC;
+	std::uint8_t SF = 0;
+	std::uint32_t AX = 0;
+	std::uint32_t BX = 0;
+	std::uint32_t PTR = 0;
+	std::uint16_t IC = 0;
 };
 
 enum class ProcessState
@@ -31,14 +32,14 @@ enum class ProcessState
 class Process
 {
 public:
-	Process(const Process* parent, ProcessState initialState,
+	Process(Process* parent, ProcessState initialState,
 		std::uint8_t priority, const std::string& name);
 	void saveRegisters();
 	void restoreRegisters();
 
 	virtual void run() = 0;
 
-	static void createProcess(std::unique_ptr<Process>&& process, Process* parent);
+	static void createProcess(Process* process, Process* parent);
 	static void destroyProcess(int ID);
 	static void stopProcess(const std::string& name);
 	static void activateProcess(const std::string& name);
@@ -48,6 +49,9 @@ public:
 
 
 	std::uint32_t getID() const { return m_ID; }
+	ProcessState getState() const { return m_state; }
+	void setState(ProcessState state) { m_state = state; }
+	int getPriority() const { return m_priority; }
 protected:
 
 	std::uint32_t m_ID;
@@ -57,16 +61,17 @@ protected:
 	CPU* m_processor;
 	ProcessState m_state;
 	std::vector<Resource> m_createdResList;
-	std::vector<Element> m_elementList;
+	std::vector<Element*> m_elementList;
 	// owned elements
 	Process* m_parent;
 	std::vector<Process*> m_childProcesses;
+	Kernel& m_kernel;
 };
 
 class StartStopProcess : public Process
 {
 public:
-	StartStopProcess(const Process* parent, ProcessState initialState,
+	StartStopProcess(Process* parent, ProcessState initialState,
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "StartStop") {}
 	virtual void run() override;
@@ -75,25 +80,25 @@ public:
 class ReadFromInterfaceProcess : public Process
 {
 public:
-	ReadFromInterfaceProcess(const Process* parent, ProcessState initialState,
+	ReadFromInterfaceProcess(Process* parent, ProcessState initialState,
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "ReadFromInterface") {}
 	virtual void run() override;
 };
 
-class JCLProcess : public Process
-{
-public:
-	JCLProcess(const Process* parent, ProcessState initialState,
-		std::uint8_t priority)
-		: Process(parent, initialState, priority, "JCL") {}
-	virtual void run() override;
-};
+//class JCLProcess : public Process
+//{
+//public:
+//	JCLProcess(Process* parent, ProcessState initialState,
+//		std::uint8_t priority)
+//		: Process(parent, initialState, priority, "JCL") {}
+//	virtual void run() override;
+//};
 
 class MainProcProcess : public Process
 {
 public:
-	MainProcProcess(const Process* parent, ProcessState initialState,
+	MainProcProcess(Process* parent, ProcessState initialState,
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "MainProc") {}
 	virtual void run() override;
@@ -102,7 +107,7 @@ public:
 class VirtualMachineProcess : public Process
 {
 public:
-	VirtualMachineProcess(const Process* parent, ProcessState initialState,
+	VirtualMachineProcess(Process* parent, ProcessState initialState,
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "VirtualMachine") {}
 	virtual void run() override;
@@ -111,7 +116,7 @@ public:
 class InterruptProcess : public Process
 {
 public:
-	InterruptProcess(const Process* parent, ProcessState initialState,
+	InterruptProcess(Process* parent, ProcessState initialState,
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "Interrupt") {}
 	virtual void run() override;
@@ -120,7 +125,7 @@ public:
 class PrintLineProcess : public Process
 {
 public:
-	PrintLineProcess(const Process* parent, ProcessState initialState,
+	PrintLineProcess(Process* parent, ProcessState initialState,
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "PrintLine") {}
 	virtual void run() override;
@@ -129,13 +134,11 @@ public:
 class JobGovernorProcess : public Process
 {
 public:
-	JobGovernorProcess(const Process* parent, ProcessState initialState,
+	JobGovernorProcess(Process* parent, ProcessState initialState,
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "JobGovernor") {}
 	virtual void run() override;
 };
-
-std::vector<std::unique_ptr<Process>> ProcessList;
 
 
 

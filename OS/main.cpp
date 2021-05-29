@@ -8,6 +8,8 @@
 
 #include "VM.h"
 #include "RM.h"
+#include "Process.h"
+#include "Kernel.h"
 
 bool isNumber(const std::string& line)
 {
@@ -68,9 +70,14 @@ int main()
     */
 
     RM rm;
+    ////rm.StartProgram("addNumbers.txt");
     //rm.StartProgram("addNumbers.txt");
-    rm.StartProgram("addNumbers.txt");
-    rm.RunAll();
+    //rm.RunAll();
+
+    Kernel::createInstance(&rm);
+    StartStopProcess* startStop = new StartStopProcess(nullptr, ProcessState::Ready, 100);
+    Process::createProcess(startStop, nullptr);
+    Kernel::getInstance().run();
 
     return 0;
 }

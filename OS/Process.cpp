@@ -4,9 +4,11 @@
 
 static int currentID = 1;
 
-Process::Process(const Process* parent, ProcessState initialState, std::uint8_t priority,
-	const std::string& name)
+Process::Process(Process* parent, ProcessState initialState, std::uint8_t priority,
+	const std::string& name) : m_parent(parent), m_state(initialState), m_priority(priority), m_name(name), m_processor(nullptr),
+	m_kernel(Kernel::getInstance())
 {
+	m_processor = m_kernel.RealMachine->GetProcessor();
 	m_ID = currentID++;
 }
 
@@ -29,22 +31,29 @@ void Process::restoreRegisters()
 }
 
 
-void Process::createProcess(std::unique_ptr<Process>&& process, Process* parent)
+void Process::createProcess(Process* process, Process* parent)
 {
-	// change unique ptr location
-	ProcessList.push_back(process);
-	parent->m_childProcesses.push_back(process.get());
+	Kernel& kernel = Kernel::getInstance();
+	kernel.addToProcessList(process);
+	if (process->getState() == ProcessState::Ready || process->getState() == ProcessState::ReadyStopped)
+		kernel.addToReadyProcList(process);
+
+	if (parent)
+		parent->m_childProcesses.push_back(process);
+
+	kernel.runScheduler();
 }
 
 void Process::destroyProcess(int ID)
 {
+	auto& ProcessList = Kernel::getInstance().ProcessList;
 	int toDelete = -1;
-	Process* process;
+	Process* process = nullptr;
 	for (int i = 0; i < ProcessList.size(); i++)
 	{
 		if (ProcessList[i]->getID() == ID)
 		{
-			process = ProcessList[i].get();
+			process = ProcessList[i];
 			toDelete = i;
 			break;
 		}
@@ -60,70 +69,115 @@ void Process::destroyProcess(int ID)
 	if (process->m_parent)
 	{
 		auto& parentList = process->m_parent->m_childProcesses;
-		std::remove(parentList.begin(), parentList.end(), process);
+		parentList.erase(std::remove(parentList.begin(), parentList.end(), process), parentList.end());
 	}
 
 	ProcessList.erase(ProcessList.begin() + toDelete);
+	Kernel::getInstance().runScheduler();
 }
 
 void Process::stopProcess(const std::string& name)
 {
+	Kernel::getInstance().runScheduler();
 }
 
 void Process::activateProcess(const std::string& name)
 {
+	Kernel::getInstance().runScheduler();
 }
 
 void Process::stopProcess(int ID)
 {
+	Kernel::getInstance().runScheduler();
 }
 
 void Process::activateProcess(int ID)
 {
+	Kernel::getInstance().runScheduler();
 }
 
 void StartStopProcess::run()
 {
-	// initialize system resources
-	// supervisor memory
-	// user memory
-	// initialize system processes
-	std::unique_ptr<Process> readFromInterface(new ReadFromInterfaceProcess(this, ProcessState::Ready, 90));
-	Process::createProcess(std::move(readFromInterface), this);
+	switch (m_processor->IC)
+	{
+	case 0:
+	{
 
-	std::unique_ptr<Process> JCL(new JCLProcess(this, ProcessState::Ready, 90));
-	Process::createProcess(std::move(JCL), this);
+		m_processor->IC++;
+		// initialize system resources
+		Resource::CreateResource(this, "UserMemory");
 
-	std::unique_ptr<Process> mainProc(new MainProcProcess(this, ProcessState::Ready, 90));
-	Process::createProcess(std::move(mainProc), this);
+		// initialize system processes
+		Process* readFromInterface = new ReadFromInterfaceProcess(this, ProcessState::Ready, 90);
+		Process::createProcess(readFromInterface, this);
 
-	std::unique_ptr<Process> interrupt(new InterruptProcess(this, ProcessState::Ready, 90));
-	Process::createProcess(std::move(interrupt), this);
+		/*Process* JCL = new JCLProcess(this, ProcessState::Ready, 90);
+		Process::createProcess(JCL), this);*/
 
-	// block waiting for MOS end
-	// 
-	// request MOS end
-	// 
-	// delete system processes
+		Process* mainProc = new MainProcProcess(this, ProcessState::Ready, 90);
+		Process::createProcess(mainProc, this);
+
+		Process* interrupt = new InterruptProcess(this, ProcessState::Ready, 90);
+		Process::createProcess(interrupt, this);
+
+		// block waiting for MOS end
+		Resource::RequestResource(this, "MOS end");
+		return;
+	}
+	case 1:
+	{
+
+		m_processor->IC++;
+		// request MOS end
+		// 
+		// delete system processes
 	
-	for (Process* process : m_childProcesses)
-		Process::destroyProcess(process->getID());
+		int i = m_childProcesses.size() - 1;
+		for (; i >= 0; i--)
+			Process::destroyProcess(m_childProcesses[i]->getID());
+
+		Kernel::getInstance().RunningProc = nullptr;
+
+	}
+	default:
+		break;
+	}
 
 	// delete system resources
 }
 
 void ReadFromInterfaceProcess::run()
 {
-	// Block for FromInterface resource
-	Resource::RequestResource(this, "FromInterface");
-	// Read file
-	// Block for memory resource
-	Resource::RequestResource(this, "UserMemory");
-	// copy file into memory
-	// Send TaskInMemory
+	switch (m_processor->IC)
+	{
+	case 0:
+		// Block for FromInterface resource
+		m_processor->IC++;
+		Resource::RequestResource(this, "FromInterface");
+		for (auto elem : m_elementList)
+		{
+			if (elem->resource->name == "FromInterface")
+				continue;
+		}
 
-
-	
+		break;
+	case 1:
+		// Read file
+		m_processor->IC++;
+		break;
+	case 2:
+		// Block for memory resource
+		m_processor->IC++;
+		Resource::RequestResource(this, "UserMemory");
+		break;
+	case 3:
+		// copy file into memory
+		// Send TaskInMemory
+		m_processor->IC = 0;
+		break;
+	default:
+		break;
+	}
 }
 
 void MainProcProcess::run()
@@ -146,6 +200,6 @@ void JobGovernorProcess::run()
 {
 }
 
-void JCLProcess::run()
-{
-}
+//void JCLProcess::run()
+//{
+//}

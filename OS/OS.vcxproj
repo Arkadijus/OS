@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CPU.cpp" />
+    <ClCompile Include="Kernel.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Process.cpp" />
@@ -150,6 +151,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPU.h" />
+    <ClInclude Include="Kernel.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="Process.h" />
     <ClInclude Include="Resource.h" />
