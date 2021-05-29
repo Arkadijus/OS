@@ -1,6 +1,7 @@
 #include "Kernel.h"
 
 #include <algorithm>
+#include <iostream>
 
 #include "Process.h"
 
@@ -48,8 +49,16 @@ void Kernel::runScheduler()
 
     if (!ReadyProcList.empty())
     {
-        RunningProc = ReadyProcList[0];
-        RunningProc->restoreRegisters();
+        for (Process* proc : ReadyProcList)
+        {
+            if (proc->getState() != ProcessState::ReadyStopped)
+            {
+                RunningProc = proc;
+                std::cout << "Selected Proc ID: " << RunningProc->getID() << std::endl;
+                RunningProc->restoreRegisters();
+                break;
+            }
+        }
     }
 }
 

@@ -37,7 +37,7 @@ void Resource::DeleteResource(int id)
 				else if (state == ProcessState::BlockedStopped)
 					resources[i]->waitingProcesses[j].process->setState(ProcessState::ReadyStopped);
 			}
-			for (size_t j = 0; j < resources[i]->elements.size(); i++)
+			for (size_t j = 0; j < resources[i]->elements.size(); j++)
 				delete resources[i]->elements[j];
 			auto& processes = Kernel::getInstance().ProcessList;
 			for (int j = 0; j < processes.size(); j++)
@@ -137,13 +137,20 @@ void Resource::AssignResources()
 				resources[i]->waitingProcesses[highestPriorityProcess].elementCount--;
 			}
 		}
-		if (resources[i]->waitingProcesses[highestPriorityProcess].elementCount == 0)
+
+		Resource* resource = resources[i];
+		if (resource->waitingProcesses[highestPriorityProcess].elementCount == 0)
 		{
-			auto state = resources[i]->waitingProcesses[highestPriorityProcess].process->getState();
+			Process* proc = resource->waitingProcesses[highestPriorityProcess].process;
+			auto state = proc->getState();
 			if (state == ProcessState::Blocked)
-				resources[i]->waitingProcesses[highestPriorityProcess].process->setState(ProcessState::Ready);
+				proc->setState(ProcessState::Ready);
 			else if (state == ProcessState::BlockedStopped)
-				resources[i]->waitingProcesses[highestPriorityProcess].process->setState(ProcessState::ReadyStopped);
+				proc->setState(ProcessState::ReadyStopped);
+
+			resource->waitingProcesses.erase(std::remove_if(resource->waitingProcesses.begin(), resource->waitingProcesses.end(),
+				[proc](const WaitingProcess& wp) { return wp.process->getID() == proc->getID(); }),
+				resource->waitingProcesses.end());
 		}
 
 		// not sure what to do otherwise? Probably nothing but that leaves the question maybe to prioritize these elements that request the least elements first

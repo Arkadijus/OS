@@ -1,6 +1,7 @@
 #include "Process.h"
 
 #include <algorithm>
+#include "Tools.h"
 
 static int currentID = 1;
 
@@ -31,7 +32,7 @@ void Process::restoreRegisters()
 }
 
 
-void Process::createProcess(Process* process, Process* parent)
+void Process::createProcess(Process* process, Process* parent, Element* element)
 {
 	Kernel& kernel = Kernel::getInstance();
 	kernel.addToProcessList(process);
@@ -40,6 +41,9 @@ void Process::createProcess(Process* process, Process* parent)
 
 	if (parent)
 		parent->m_childProcesses.push_back(process);
+
+	if (element)
+		process->addElement(element);
 
 	kernel.runScheduler();
 }
@@ -91,13 +95,49 @@ void Process::activateProcess(const std::string& name)
 	Kernel::getInstance().runScheduler();
 }
 
+Process* Process::getProcess(int ID)
+{
+	for (Process* proc : Kernel::getInstance().ProcessList)
+	{
+		if (proc->getID() == ID)
+			return proc;
+	}
+
+	return nullptr;
+}
+
+Process* Process::getProcess(const std::string& name)
+{
+	for (Process* proc : Kernel::getInstance().ProcessList)
+	{
+		if (proc->getName() == name)
+			return proc;
+	}
+
+	return nullptr;
+}
+
 void Process::stopProcess(int ID)
 {
+	Process* proc = Process::getProcess(ID);
+
+	if (proc->getState() == ProcessState::Ready)
+		proc->setState(ProcessState::ReadyStopped);
+	else if (proc->getState() == ProcessState::Blocked)
+		proc->setState(ProcessState::BlockedStopped);
+
 	Kernel::getInstance().runScheduler();
 }
 
 void Process::activateProcess(int ID)
 {
+	Process* proc = Process::getProcess(ID);
+
+	if (proc->getState() == ProcessState::ReadyStopped)
+		proc->setState(ProcessState::Ready);
+	else if (proc->getState() == ProcessState::BlockedStopped)
+		proc->setState(ProcessState::Blocked);
+
 	Kernel::getInstance().runScheduler();
 }
 
@@ -111,16 +151,27 @@ void StartStopProcess::run()
 		m_processor->IC++;
 		// initialize system resources
 		Resource::CreateResource(this, USER_MEMORY);
+		
+		for (int i = 0; i < 10; i++)
+		{
+			Element* elem = new Element;
+			elem->mem = new Memory();
+			Resource::FreeResource(this, elem, USER_MEMORY);
+		}
 
 		// initialize system processes
-		Process* readFromInterface = new ReadFromInterfaceProcess(this, ProcessState::Ready, 90);
+		Process* readFromInterface = new ReadFromInterfaceProcess(this, ProcessState::Ready, 95);
 		Process::createProcess(readFromInterface, this);
 
 		Process* mainProc = new MainProcProcess(this, ProcessState::Ready, 90);
 		Process::createProcess(mainProc, this);
 
+
 		Process* interrupt = new InterruptProcess(this, ProcessState::Ready, 90);
 		Process::createProcess(interrupt, this);
+
+		Process* idle = new IdleProcess(this, ProcessState::Ready, 0);
+		Process::createProcess(idle, this);
 
 		// block waiting for MOS end
 		Resource::RequestResource(this, MOS_END, 1);
@@ -154,52 +205,270 @@ void ReadFromInterfaceProcess::run()
 	{
 	case 0:
 		// Block for FromInterface resource
-		m_processor->IC++;
-		Resource::RequestResource(this, FROM_INTERFACE, 1);
-		for (auto elem : m_elementList)
+		for (int i = 0; i < m_elementList.size(); i++)
 		{
-			if (elem->resource->name == FROM_INTERFACE, 1)
-				continue;
+			if (m_elementList[i]->resource->name == FROM_INTERFACE)
+			{
+				m_fileName = *m_elementList[i]->string;
+				m_elementList.erase(m_elementList.begin() + i);
+				m_processor->IC++;
+				return;
+			}
 		}
 
-		break;
+		Resource::RequestResource(this, FROM_INTERFACE, 1);
+		return;
 	case 1:
-		// Read file
-		m_processor->IC++;
-		break;
-	case 2:
 		// Block for memory resource
-		m_processor->IC++;
+		for (int i = 0; i < m_elementList.size(); i++)
+		{
+			if (m_elementList[i]->resource->name == USER_MEMORY)
+			{
+				m_memory = m_elementList[i]->mem;
+				m_elementList.erase(m_elementList.begin() + i);
+				m_processor->IC++;
+				return;
+			}
+		}
+
 		Resource::RequestResource(this, USER_MEMORY, 1);
-		break;
+		return;
+	case 2:
+		// Read file
+		RM::fileToMemory(m_fileName, *m_memory);
+		m_processor->IC++;
+		return;
 	case 3:
-		// copy file into memory
-		// Send TaskInMemory
+	{
+
+		Element* elem = new Element;
+		elem->mem = m_memory;
+		elem->integer = 1;
+		elem->sender = this;
+		elem->receiver = Process::getProcess("MainProc");
+		Resource::FreeResource(this, elem, PROGRAM_IN_MEMORY);
+
+		m_fileName = "";
+		m_memory = nullptr;
 		m_processor->IC = 0;
-		break;
+		return;
+	}
 	default:
-		break;
+		return;
 	}
 }
 
 void MainProcProcess::run()
 {
-}
+	switch (m_processor->IC)
+	{
+	case 0:
+		// Block for ProgramInMemory resource
+		for (int i = 0; i < m_elementList.size(); i++)
+		{
+			if (m_elementList[i]->resource->name == PROGRAM_IN_MEMORY)
+			{
+				m_element = m_elementList[i];
+				m_elementList.erase(m_elementList.begin() + i);
+				m_processor->IC++;
+				return;
+			}
+		}
 
-void VirtualMachineProcess::run()
-{
-}
+		Resource::RequestResource(this, PROGRAM_IN_MEMORY, 1);
+		return;
+	case 1:
+		// Create or delete VM
 
-void InterruptProcess::run()
-{
-}
+		if (m_element && m_element->integer)
+		{
+			Process* jobGov = new JobGovernorProcess(this, ProcessState::Ready, 85);
+			Process::createProcess(jobGov, this, m_element);
+		}
+		else
+		{
+			if (m_element) Process::destroyProcess(m_element->sender->getID());
+		}
 
-void PrintLineProcess::run()
-{
+		m_element = nullptr;
+
+		m_processor->IC = 0;
+	}
 }
 
 void JobGovernorProcess::run()
 {
+	// Create VM
+	// Block for InterruptGov event
+	// Stop VM
+	// if Timer interrupt, decrease priority
+	// if Halt interrupt destroy VM
+
+	switch (m_processor->IC)
+	{
+	case 0:
+	{
+		for (int i = 0; i < m_elementList.size(); i++)
+		{
+			if (m_elementList[i]->resource->name == PROGRAM_IN_MEMORY)
+			{
+				m_element = m_elementList[i];
+				m_elementList.erase(m_elementList.begin() + i);
+			}
+		}
+
+		Process* vm = new VirtualMachineProcess(this, ProcessState::Ready, 80);
+		Process::createProcess(vm, this, m_element);
+		m_processor->IC++;
+	}
+	case 1:
+		// Block for InterruptGov event
+		for (int i = 0; i < m_elementList.size(); i++)
+		{
+			if (m_elementList[i]->resource->name == INTERRUPT_GOV)
+			{
+				m_interrupt = m_elementList[i]->string;
+				m_elementList.erase(m_elementList.begin() + i);
+				m_processor->IC++;
+				return;
+			}
+		}
+
+		Resource::RequestResource(this, INTERRUPT_GOV, 1);
+		return;
+	case 2:
+		Process::stopProcess(m_childProcesses[0]->getID());
+
+		if (*m_interrupt == "KILL")
+		{
+			Element* elem = new Element;
+			elem->sender = this;
+			elem->integer = 0;
+			Resource::FreeResource(this, elem, PROGRAM_IN_MEMORY);
+			Resource::RequestResource(this, "NonExistant", 1);
+		}
+		else
+		{
+			int priority = m_childProcesses[0]->getPriority();
+			m_childProcesses[0]->setPriority(priority - 1);
+			Process::activateProcess(m_childProcesses[0]->getID());
+		}
+
+		m_processor->IC = 0;
+	}
+}
+
+void VirtualMachineProcess::run()
+{
+	m_processor->MODE = 1;
+	
+	for (int i = 0; i < m_elementList.size(); i++)
+	{
+		if (m_elementList[i]->resource->name == PROGRAM_IN_MEMORY)
+		{
+			m_element = m_elementList[i];
+			m_elementList.erase(m_elementList.begin() + i);
+			m_vm = new VM(*m_element->mem, m_processor);
+		}
+	}
+
+	executeInstruction();
+	if (test())
+	{
+		InterruptRegisters* registers = new InterruptRegisters;
+		registers->PI = m_processor->PI;
+		registers->TI = m_processor->TI;
+		registers->SI = m_processor->SI;
+
+		Element* elem = new Element;
+		elem->sender = this;
+		elem->receiver = Process::getProcess("Interrupt");
+		elem->registers = registers;
+		Resource::FreeResource(this, elem, INTERRUPT_VM);
+	}
+}
+
+void VirtualMachineProcess::executeInstruction()
+{
+	Memory& memory = *m_element->mem;
+	std::string instructionCode = Tools::wordToString(memory.GetWord(m_processor->IC++));
+
+	auto instrItr1 = VM::voidFunctions.find(instructionCode);
+	if (instrItr1 != VM::voidFunctions.end())
+	{
+		//execute instr
+		VM::voidFunc instr = instrItr1->second;
+		(m_vm->*instr)();
+	}
+	else
+	{
+		std::string instruction = instructionCode.substr(0, 2);
+		std::string address = instructionCode.substr(2);
+
+		int block = std::stoi(address.substr(0, 1), nullptr, 16); // TODO: TEMP
+		int word = std::stoi(address.substr(1, 1), nullptr, 16);
+
+		auto instrItr2 = VM::voidFunctionsWithAddress.find(instruction);
+		if (instrItr2 != VM::voidFunctionsWithAddress.end())
+		{
+			//execute instr
+			VM::voidFuncWithAddress instr = instrItr2->second;
+			(m_vm->*instr)(block, word);
+		}
+	}
+}
+
+bool VirtualMachineProcess::test()
+{
+	return m_processor->TI == 0 || m_processor->SI != 0 || m_processor->PI != 0;
+}
+
+void InterruptProcess::run()
+{
+	// Block for Interrupt VM event
+	// Identify interrupt
+	// Set Job Governor
+	// Send event
+
+	switch (m_processor->IC)
+	{
+	case 0:
+		for (int i = 0; i < m_elementList.size(); i++)
+		{
+			if (m_elementList[i]->resource->name == INTERRUPT_VM)
+			{
+				m_element = m_elementList[i];
+				m_elementList.erase(m_elementList.begin() + i);
+				m_processor->IC++;
+				return;
+			}
+		}
+
+		Resource::RequestResource(this, INTERRUPT_VM, 1);
+		return;
+	case 1:
+	{
+
+		auto registers = m_element->registers;
+		Element* elem = new Element;
+		elem->sender = this;
+		elem->receiver = m_element->sender->getParent();
+
+		if (registers->SI == 1) // HALT
+		{
+			elem->string = new std::string("KILL");
+		}
+		else if (registers->TI == 0) // TIMER
+		{
+			elem->string = new std::string("Timer");
+		}
+
+		Resource::FreeResource(this, elem, INTERRUPT_GOV);
+		m_processor->IC = 0;
+	}
+	default:
+		break;
+	}
 }
 
 void Process::setState(ProcessState state)
@@ -212,9 +481,6 @@ void Process::setState(ProcessState state)
 
 }
 
-//void JCLProcess::run()
-//{
-//}
 void Process::deleteElements(Resource* resource)
 {
 	m_elementList.erase(

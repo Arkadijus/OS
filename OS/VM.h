@@ -10,25 +10,11 @@ private:
 
 	CPU* processor;
 	Memory memory;
-	std::string inputBuffer;
 
-	struct CPUState
-	{
-		std::uint8_t SF;
-		std::uint32_t AX;
-		std::uint32_t BX;
-		std::uint32_t PTR;
-		std::uint16_t IC;
-	};
-
-	CPUState state;
 
 public:
 
 	VM(Memory& memory, CPU* processor);
-
-	void saveState();
-	void restoreState();
 
 	void Run();
 	void ExecuteInstruction();

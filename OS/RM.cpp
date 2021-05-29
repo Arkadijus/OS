@@ -154,11 +154,6 @@ void RM::handleInterrupts()
     if (!isValidProgramIdx())
         return;
 
-    programs[executingProgram].saveState();
-    executeInterruptRoutines();
-
-    if (isValidProgramIdx())
-        programs[executingProgram].restoreState();
 }
 
 void RM::StartProgram(const std::string& programFile)

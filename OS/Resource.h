@@ -7,6 +7,7 @@
 
 class Process;
 class Resource;
+class Memory;
 
 // mos end -> sender->interface receiver->startstop
 // task in supervizor mem -> stringu vektorius sender->read from interface receiver->JCL
@@ -18,6 +19,17 @@ class Resource;
 constexpr char MOS_END[] = "MOS end";
 constexpr char USER_MEMORY[] = "User Memory";
 constexpr char FROM_INTERFACE[] = "From Interface";
+constexpr char PROGRAM_IN_MEMORY[] = "Program In Memory";
+constexpr char INTERRUPT_VM[] = "Interrupt In Virtual Machine";
+constexpr char INTERRUPT_GOV[] = "Interrupt For Job Governor";
+
+
+struct InterruptRegisters
+{
+	std::uint8_t SI;
+	std::uint8_t PI;
+	std::uint8_t TI;
+};
 
 struct Element
 {
@@ -27,11 +39,16 @@ struct Element
 	std::vector<std::string>* strings = nullptr;
 	std::vector<uint32_t>* words = nullptr;
 	std::string* string = nullptr;
+	Memory* mem = nullptr;
+	InterruptRegisters* registers = nullptr;
+	int integer = 0;
 	~Element()
 	{
 		delete strings;
 		delete words;
 		delete string;
+		delete mem;
+		delete registers;
 	}
 };
 

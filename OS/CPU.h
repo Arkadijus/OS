@@ -33,7 +33,7 @@ public:
 
 	std::uint8_t SI = 0;
 	std::uint8_t PI = 0;
-	std::uint8_t TI = 100;
+	std::uint8_t TI = 10;
 
 	std::uint8_t SB = 0;
 	std::uint8_t DB = 0;

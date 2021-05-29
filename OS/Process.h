@@ -39,19 +39,24 @@ public:
 
 	virtual void run() = 0;
 
-	static void createProcess(Process* process, Process* parent);
+	static void createProcess(Process* process, Process* parent, Element* element = nullptr);
 	static void destroyProcess(int ID);
 	static void stopProcess(const std::string& name);
 	static void activateProcess(const std::string& name);
+	static Process* getProcess(int ID);
+	static Process* getProcess(const std::string& name);
 
 	static void stopProcess(int ID);
 	static void activateProcess(int ID);
 
 
+	Process* getParent() { return m_parent; }
 	std::uint32_t getID() const { return m_ID; }
+	std::string getName() const { return m_name; }
 	ProcessState getState() const { return m_state; }
 	void setState(ProcessState state);
 	int getPriority() const { return m_priority; }
+	void setPriority(int priority) { m_priority = priority; }
 	void addElement(Element* element) { m_elementList.push_back(element); }
 	void deleteElements(Resource* resource);
 	std::vector<Resource*>& getCreatedResList() { return m_createdResList; }
@@ -81,6 +86,15 @@ public:
 	virtual void run() override;
 };
 
+class IdleProcess : public Process
+{
+public:
+	IdleProcess(Process* parent, ProcessState initialState,
+		std::uint8_t priority)
+		: Process(parent, initialState, priority, "Idle") {}
+	virtual void run() {};
+};
+
 class ReadFromInterfaceProcess : public Process
 {
 public:
@@ -88,16 +102,11 @@ public:
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "ReadFromInterface") {}
 	virtual void run() override;
-};
 
-//class JCLProcess : public Process
-//{
-//public:
-//	JCLProcess(Process* parent, ProcessState initialState,
-//		std::uint8_t priority)
-//		: Process(parent, initialState, priority, "JCL") {}
-//	virtual void run() override;
-//};
+private:
+	std::string m_fileName;
+	Memory* m_memory = nullptr;
+};
 
 class MainProcProcess : public Process
 {
@@ -106,6 +115,9 @@ public:
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "MainProc") {}
 	virtual void run() override;
+
+private:
+	Element* m_element = nullptr;
 };
 
 class VirtualMachineProcess : public Process
@@ -115,6 +127,13 @@ public:
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "VirtualMachine") {}
 	virtual void run() override;
+
+private:
+	void executeInstruction();
+	bool test();
+
+	Element* m_element = nullptr;
+	VM* m_vm = nullptr;
 };
 
 class InterruptProcess : public Process
@@ -124,15 +143,8 @@ public:
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "Interrupt") {}
 	virtual void run() override;
-};
 
-class PrintLineProcess : public Process
-{
-public:
-	PrintLineProcess(Process* parent, ProcessState initialState,
-		std::uint8_t priority)
-		: Process(parent, initialState, priority, "PrintLine") {}
-	virtual void run() override;
+	Element* m_element = nullptr;
 };
 
 class JobGovernorProcess : public Process
@@ -142,6 +154,10 @@ public:
 		std::uint8_t priority)
 		: Process(parent, initialState, priority, "JobGovernor") {}
 	virtual void run() override;
+
+private:
+	Element* m_element = nullptr;
+	std::string* m_interrupt = nullptr;
 };
 
 

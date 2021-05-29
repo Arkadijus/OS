@@ -3,5 +3,5 @@ $$09 1$ // iraso ‘Iveskite pirma demeni$’ i atminti
 
 .code
 PA09 // Spausdina visus simbolius iki $
-JP00
+//JP00
 HALT

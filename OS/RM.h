@@ -14,9 +14,8 @@ private:
 
 	std::vector<VM> programs;
 
-	void parseCodeSegment(const std::string& command, Memory& memory, int location);
-	void parseDataSegment(const std::string& dataSegmStr, Memory& memory);
-	void fileToMemory(const std::string& filename, Memory& memory);
+	static void parseCodeSegment(const std::string& command, Memory& memory, int location);
+	static void parseDataSegment(const std::string& dataSegmStr, Memory& memory);
 
 	// PI interrupts
 	struct ProgramInterrupt
@@ -55,5 +54,6 @@ public:
 	void StartProgram(const std::string& programFile);
 	void RunAll();
 	CPU* GetProcessor() { return &processor; }
+	static void fileToMemory(const std::string& filename, Memory& memory);
 };
 

@@ -9,32 +9,12 @@
 #define VMWORDS 16
 
 VM::VM(Memory& memory, CPU* processor)
-	: memory(memory), processor(processor), state({ 0 })
+	: memory(memory), processor(processor)
 {
 	assert(processor);
 	// TODO: since i've changed it to pointer, must ensure that its not nullptr.
 	// for now just an assert
 }
-
-void VM::saveState()
-{
-	state.SF = processor->SF;
-	state.AX = processor->AX;
-	state.BX = processor->BX;
-	state.PTR = processor->PTR;
-	state.IC = processor->IC;
-}
-
-void VM::restoreState()
-{
-	processor->SF = state.SF;
-	processor->AX = state.AX;
-	processor->BX = state.BX;
-	processor->PTR = state.PTR;
-	processor->IC = state.IC;
-}
-
-
 
 void VM::Run()
 {
@@ -191,6 +171,7 @@ void VM::PrintWord(std::uint32_t block, std::uint32_t word)
 void VM::PrintUntilEnd(std::uint32_t block, std::uint32_t word)
 {
 	memory.PrintUntilEnd(block, word);
+	processor->TI--;
 }
 
 void VM::InputAX()
@@ -219,8 +200,8 @@ void VM::Halt()
 
 void VM::Jump(std::uint32_t block, std::uint32_t word)
 {
-
 	processor->IC = block * WORDCOUNT + word;
+	processor->TI--;
 }
 
 void VM::JumpMore(std::uint32_t block, std::uint32_t word)
