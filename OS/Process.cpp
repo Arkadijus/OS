@@ -205,9 +205,10 @@ void JobGovernorProcess::run()
 //}
 void Process::deleteElements(Resource* resource)
 {
-	for (int i = 0; i < m_elementList.size(); i++)
+	auto it = m_elementList.begin();
+	while(it != m_elementList.end())
 	{
-		if (m_elementList[i]->resource == resource)
-			m_elementList.erase(m_elementList.begin() + i);
+		if((*it)->resource == resource)
+			it = m_elementList.erase(it);
 	}
 }
