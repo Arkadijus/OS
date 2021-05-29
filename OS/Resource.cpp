@@ -65,13 +65,12 @@ void Resource::RequestResource(Process* requestingProcess, std::string name, int
 	if (!found)
 	{
 		Resource::CreateResource(requestingProcess, name);
-		Resource::RequestResource(requestingProcess, name);
+		Resource::RequestResource(requestingProcess, name, elementCount);
 	}
 
-	AssignResources();
 
 	if (found)
-		Kernel::getInstance().runScheduler();
+		AssignResources();
 }
 
 void Resource::FreeResource(Process* parentProcess, Element* element, std::string name)
@@ -93,7 +92,9 @@ void Resource::FreeResource(Process* parentProcess, Element* element, std::strin
 		Resource::CreateResource(parentProcess, name);
 		Resource::FreeResource(parentProcess, element, name);
 	}
-	AssignResources();
+
+	if (found)
+		AssignResources();
 }
 
 void Resource::AssignResources()
@@ -104,7 +105,11 @@ void Resource::AssignResources()
 	{
 		int highestPriorityProcess = 0;
 		int highestPriority = 0;
-		for (int j = 0; j < resources[i]->waitingProcesses.size(); i++)
+
+		if (resources[i]->waitingProcesses.empty())
+			continue;
+
+		for (int j = 0; j < resources[i]->waitingProcesses.size(); j++)
 		{
 			int tempPriority = resources[i]->waitingProcesses[j].process->getPriority();
 			if (tempPriority > highestPriority)
@@ -122,6 +127,7 @@ void Resource::AssignResources()
 			{
 				resources[i]->waitingProcesses[highestPriorityProcess].process->addElement(resources[i]->elements[0]);
 				resources[i]->elements.erase(resources[i]->elements.begin());
+				resources[i]->waitingProcesses[highestPriorityProcess].elementCount--;
 			}
 		}
 		if (resources[i]->waitingProcesses[highestPriorityProcess].elementCount == 0)
@@ -135,4 +141,6 @@ void Resource::AssignResources()
 
 		// not sure what to do otherwise? Probably nothing but that leaves the question maybe to prioritize these elements that request the least elements first
 	}
+
+	Kernel::getInstance().runScheduler();
 }

@@ -50,7 +50,7 @@ public:
 
 	std::uint32_t getID() const { return m_ID; }
 	ProcessState getState() const { return m_state; }
-	void setState(ProcessState state) { m_state = state; }
+	void setState(ProcessState state);
 	int getPriority() const { return m_priority; }
 	void addElement(Element* element) { m_elementList.push_back(element); }
 	void deleteElements(Resource* resource);

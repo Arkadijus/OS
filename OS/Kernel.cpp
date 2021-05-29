@@ -23,7 +23,14 @@ void Kernel::createInstance(RM* rm)
 void Kernel::run()
 {
     while (RunningProc && !ProcessList.empty())
+    {
+        if (!queue.isEmpty())
+        {
+            auto elem = queue.pop();
+            Resource::FreeResource(nullptr, elem.elem, elem.name);
+        }
         RunningProc->run();
+    }
 }
 
 void Kernel::runScheduler()
@@ -83,4 +90,24 @@ void Kernel::addToBlockedProcList(Process* proc)
 
 void Kernel::addToResourceList(Resource* proc)
 {
+}
+
+bool Queue::isEmpty()
+{
+    std::unique_lock<std::mutex> lock(mutex);
+    return queue.empty();
+}
+
+QueueElem Queue::pop()
+{
+    std::unique_lock<std::mutex> lock(mutex);
+    auto elem = queue.front();
+    queue.pop();
+    return elem;
+}
+
+void Queue::push(const QueueElem& elem)
+{
+    std::unique_lock<std::mutex> lock(mutex);
+    queue.push(elem);
 }

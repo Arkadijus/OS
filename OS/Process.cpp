@@ -105,7 +105,7 @@ void StartStopProcess::run()
 
 		m_processor->IC++;
 		// initialize system resources
-		Resource::CreateResource(this, "UserMemory");
+		Resource::CreateResource(this, USER_MEMORY);
 
 		// initialize system processes
 		Process* readFromInterface = new ReadFromInterfaceProcess(this, ProcessState::Ready, 90);
@@ -121,7 +121,7 @@ void StartStopProcess::run()
 		Process::createProcess(interrupt, this);
 
 		// block waiting for MOS end
-		Resource::RequestResource(this, "MOS end");
+		Resource::RequestResource(this, MOS_END, 1);
 		return;
 	}
 	case 1:
@@ -153,10 +153,10 @@ void ReadFromInterfaceProcess::run()
 	case 0:
 		// Block for FromInterface resource
 		m_processor->IC++;
-		Resource::RequestResource(this, "FromInterface");
+		Resource::RequestResource(this, FROM_INTERFACE, 1);
 		for (auto elem : m_elementList)
 		{
-			if (elem->resource->name == "FromInterface")
+			if (elem->resource->name == FROM_INTERFACE, 1)
 				continue;
 		}
 
@@ -168,7 +168,7 @@ void ReadFromInterfaceProcess::run()
 	case 2:
 		// Block for memory resource
 		m_processor->IC++;
-		Resource::RequestResource(this, "UserMemory");
+		Resource::RequestResource(this, USER_MEMORY, 1);
 		break;
 	case 3:
 		// copy file into memory
@@ -198,6 +198,16 @@ void PrintLineProcess::run()
 
 void JobGovernorProcess::run()
 {
+}
+
+void Process::setState(ProcessState state)
+{
+	m_state = state;
+	if (state == ProcessState::Blocked || state == ProcessState::BlockedStopped)
+		Kernel::getInstance().addToBlockedProcList(this);
+	else if (state == ProcessState::Ready || state == ProcessState::ReadyStopped)
+		Kernel::getInstance().addToReadyProcList(this);
+
 }
 
 //void JCLProcess::run()

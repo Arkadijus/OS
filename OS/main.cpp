@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
+#include <thread>
 
 #include "VM.h"
 #include "RM.h"
@@ -60,6 +61,26 @@ std::uint32_t StringToNumber(const std::string& str)
     return num;
 }
 
+void interfaceFunc()
+{
+    std::string line;
+    while (std::getline(std::cin, line))
+    {
+        if (line == "Stop")
+        {
+            Element* ele = new Element;
+            Kernel::getInstance().queue.push({ MOS_END, ele });
+            break;
+        }
+        else
+        {
+            Element* ele = new Element;
+            ele->string = new std::string(line);
+            Kernel::getInstance().queue.push({ FROM_INTERFACE, ele });
+        }
+    }
+}
+
 int main()
 {
     /*
@@ -77,7 +98,11 @@ int main()
     Kernel::createInstance(&rm);
     StartStopProcess* startStop = new StartStopProcess(nullptr, ProcessState::Ready, 100);
     Process::createProcess(startStop, nullptr);
+
+    std::thread interfaceThread(interfaceFunc);
+
     Kernel::getInstance().run();
 
+    interfaceThread.join();
     return 0;
 }

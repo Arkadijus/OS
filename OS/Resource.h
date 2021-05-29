@@ -14,6 +14,11 @@ class Resource;
 // interrupt event -> sender VirtualMachine receiver interrupt
 // interrupt governor -> sender interrupt, receiver jobgovernor
 
+
+constexpr char MOS_END[] = "MOS end";
+constexpr char USER_MEMORY[] = "User Memory";
+constexpr char FROM_INTERFACE[] = "From Interface";
+
 struct Element
 {
 	Resource* resource = nullptr;
@@ -26,6 +31,7 @@ struct Element
 	{
 		delete strings;
 		delete words;
+		delete string;
 	}
 };
 
