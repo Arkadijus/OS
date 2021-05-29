@@ -15,6 +15,9 @@ Resource::~Resource()
 int Resource::CreateResource(Process* parentProcess, std::string name)
 {
 	Resource* resource = new Resource(parentProcess, name);
+	
+	if (parentProcess) parentProcess->getCreatedResList().push_back(resource);
+
 	Kernel::getInstance().ResourceList.push_back(resource);
 	return resource->id;
 }
@@ -39,8 +42,12 @@ void Resource::DeleteResource(int id)
 			auto& processes = Kernel::getInstance().ProcessList;
 			for (int j = 0; j < processes.size(); j++)
 			{
-				processes[i]->deleteElements(resources[i]);
+				processes[j]->deleteElements(resources[i]);
 			}
+
+			if (resources[i]->parentProcess)
+				resources[i]->parentProcess->deleteResource(resources[i]->id);
+
 			delete resources[i];
 			break;
 		}

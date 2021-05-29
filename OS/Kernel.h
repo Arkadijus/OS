@@ -55,6 +55,8 @@ public:
 	void addToBlockedProcList(Process* proc);
 	void addToResourceList(Resource* proc);
 
+	void deleteProcess(int ID);
+
 private:
 	Kernel(RM* rm) : RunningProc(nullptr), RealMachine(rm) {}
 

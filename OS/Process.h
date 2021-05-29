@@ -54,6 +54,8 @@ public:
 	int getPriority() const { return m_priority; }
 	void addElement(Element* element) { m_elementList.push_back(element); }
 	void deleteElements(Resource* resource);
+	std::vector<Resource*>& getCreatedResList() { return m_createdResList; }
+	void deleteResource(int ID);
 protected:
 
 	std::uint32_t m_ID;
@@ -62,7 +64,7 @@ protected:
 	std::uint8_t m_priority;
 	CPU* m_processor;
 	ProcessState m_state;
-	std::vector<Resource> m_createdResList;
+	std::vector<Resource*> m_createdResList;
 	std::vector<Element*> m_elementList;
 	// owned elements
 	Process* m_parent;

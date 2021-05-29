@@ -92,6 +92,24 @@ void Kernel::addToResourceList(Resource* proc)
 {
 }
 
+void Kernel::deleteProcess(int ID)
+{
+    ProcessList.erase(
+        std::remove_if(ProcessList.begin(), ProcessList.end(),
+            [ID](const Process* p) { return p->getID() == ID; }),
+        ProcessList.end());
+
+    ReadyProcList.erase(
+        std::remove_if(ReadyProcList.begin(), ReadyProcList.end(),
+            [ID](const Process* p) { return p->getID() == ID; }),
+        ReadyProcList.end());
+
+    BlockedProcList.erase(
+        std::remove_if(BlockedProcList.begin(), BlockedProcList.end(),
+            [ID](const Process* p) { return p->getID() == ID; }),
+        BlockedProcList.end());
+}
+
 bool Queue::isEmpty()
 {
     std::unique_lock<std::mutex> lock(mutex);

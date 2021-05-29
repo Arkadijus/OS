@@ -63,6 +63,11 @@ void Process::destroyProcess(int ID)
 		return;
 
 	// delete resources
+	for (Resource* res : process->m_createdResList)
+	{
+		Resource::DeleteResource(res->id);
+	}
+
 	for (Process* proc : process->m_childProcesses)
 		Process::destroyProcess(proc->getID());
 
@@ -111,9 +116,6 @@ void StartStopProcess::run()
 		Process* readFromInterface = new ReadFromInterfaceProcess(this, ProcessState::Ready, 90);
 		Process::createProcess(readFromInterface, this);
 
-		/*Process* JCL = new JCLProcess(this, ProcessState::Ready, 90);
-		Process::createProcess(JCL), this);*/
-
 		Process* mainProc = new MainProcProcess(this, ProcessState::Ready, 90);
 		Process::createProcess(mainProc, this);
 
@@ -126,24 +128,24 @@ void StartStopProcess::run()
 	}
 	case 1:
 	{
-
 		m_processor->IC++;
-		// request MOS end
-		// 
+
 		// delete system processes
-	
 		int i = m_childProcesses.size() - 1;
 		for (; i >= 0; i--)
 			Process::destroyProcess(m_childProcesses[i]->getID());
 
-		Kernel::getInstance().RunningProc = nullptr;
+		// delete system resources
+		i = m_createdResList.size() - 1;
+		for (; i >= 0; i--)
+			Resource::DeleteResource(m_createdResList[i]->id);
 
+		Kernel::getInstance().RunningProc = nullptr;
 	}
 	default:
 		break;
 	}
 
-	// delete system resources
 }
 
 void ReadFromInterfaceProcess::run()
@@ -215,10 +217,20 @@ void Process::setState(ProcessState state)
 //}
 void Process::deleteElements(Resource* resource)
 {
-	auto it = m_elementList.begin();
-	while(it != m_elementList.end())
+	m_elementList.erase(
+		std::remove_if(m_elementList.begin(), m_elementList.end(),
+			[resource](const Element* e) { return resource == e->resource; }),
+			m_elementList.end());
+}
+
+void Process::deleteResource(int ID)
+{
+	for (int i = 0; i < m_createdResList.size(); i++)
 	{
-		if((*it)->resource == resource)
-			it = m_elementList.erase(it);
+		if (m_createdResList[i]->id == ID)
+		{
+			m_createdResList.erase(m_createdResList.begin() + i);
+			break;
+		}
 	}
 }
