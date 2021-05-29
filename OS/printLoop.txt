@@ -1,6 +1,5 @@
-
 .data
-$$09 Iveskite pirma demeni$ // iraso ‘Iveskite pirma demeni$’ i atminti
+$$09 Program 1 printing$ // iraso ‘Iveskite pirma demeni$’ i atminti
 
 .code
 PA09 // Spausdina visus simbolius iki $

@@ -1,0 +1,7 @@
+.data
+$$09 2$ // iraso ‘Iveskite pirma demeni$’ i atminti
+
+.code
+PA09 // Spausdina visus simbolius iki $
+JP00
+HALT
